@@ -20,6 +20,7 @@ import Refferal from './pages/job/Refferal'
 import ManageJobReferral from './pages/job/ManageJobReferral'
 import OrganizationChart from './pages/general/OrganizationChart'
 import GameBooking from './pages/game/GameBooking'
+// import GameBooking from './pages/game/GameBooking'
 
 function App() {
   const router = createBrowserRouter([

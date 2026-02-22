@@ -34,7 +34,7 @@ export interface InterestedEmployeeType {
 }
 
 export interface GameBookingSubmitType {
-    Game: number
+    game: number
     bookingDate: string
     bookingTime: string
     bookedBy: number

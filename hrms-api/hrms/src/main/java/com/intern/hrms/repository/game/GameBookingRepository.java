@@ -29,7 +29,7 @@ public interface GameBookingRepository extends JpaRepository<GameBooking, Intege
 
     List<GameBooking> findByGameAndGameCycleAndBookingDateAndBookingStatus(Game game, GameCycle gameCycle, LocalDate bookingDate, BookingStatusEnum bookingStatus);
 
-    @Query("select b from GameBooking b where b.game.gameId = :gameId and b.gameCycle.gameCycleId = :gameCycleId and b.bookedBy = :employee or :employee member of b.players")
+    @Query("select b from GameBooking b where b.game.gameId = :gameId and b.gameCycle.gameCycleId = :gameCycleId and (  b.bookedBy = :employee or :employee member of b.players )")
     List<GameBooking> findEmployeeGameBookingInCycle(@Param("gameId") Integer gameId, @Param("employee") Employee employee, @Param("gameCycleId") Integer gameCycleId );
 
     @Query("select b from GameBooking b where (b.bookedBy = :employee or :employee member of b.players)")

@@ -15,7 +15,7 @@ function ManageGames() {
   const [openEdit, setOpenEdit] = useState<GameType | null>(null);
   const [openDelete, setOpenDelete] = useState<GameType | null>(null);
   const [formError, setFormError] = useState<string | null>(null)
-  const { register, handleSubmit, reset, formState: { errors }, reset:resetCreate } = useForm<GameCreateType>();
+  const { register, handleSubmit, formState: { errors }, reset:resetCreate } = useForm<GameCreateType>();
 
   const onCreate: SubmitHandler<GameCreateType> = (data) => {
     setFormError(null)
@@ -27,7 +27,7 @@ function ManageGames() {
       onSuccess: (res) => {
         toast.success(res.message)
         refetchGame()
-        reset()
+        resetCreate()
         setOpenCreate(false)
       },
       onError: (err) => {

@@ -9,7 +9,7 @@ function Sidebar2() {
   // const isCollapsed = useSelector((state: RootStateType) => state.user.isCollapsed);
   const user = useSelector((state: RootStateType) => state.user);
   return (
-    <Sidebar collapsed={user.isCollapsed} className='h-full w-54 border-r-2 border-blue-300' >
+    <Sidebar collapsed={user.isCollapsed} className='h-full border-r-2 border-blue-300' >
       <SidebarItems>
         <SidebarItemGroup>
           <NavLink to='/' className={({ isActive }: { isActive: boolean }) => isActive ? 'bg-blue-600' : ''}>
