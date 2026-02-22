@@ -134,13 +134,15 @@ public class GameBookingService {
             waitingQueueRepository.save(new WaitingQueue(booking));
         return booking;
     }
-    public void allotFromWaiting(Game game, LocalDate date, LocalTime time) {
-
-        List<GameBooking> waitingBooking = gameBookingRepository.findByGameAndBookingDateAndBookingTimeAndBookingStatus(game,date,LocalTime.of(10, 0, 0),BookingStatusEnum.Waiting);
+    public void allotFromWaiting(Game game, LocalDate date, LocalTime time, boolean fromCancel) {
+        List<GameBooking> waitingBooking = gameBookingRepository.findByGameAndBookingDateAndBookingTimeAndBookingStatus(game,date,time,BookingStatusEnum.Waiting);
         if(waitingBooking.isEmpty()){
             return;
         }
         GameBooking selected =  waitingBooking.stream().min(Comparator.comparingDouble(this::calculatePriority)).get();
+        if(fromCancel && calculatePriority(selected) != 0.0){
+            return;
+        }
         selected.setBookingStatus(BookingStatusEnum.Booked);
 
         List<Employee> participants =  new ArrayList<>(selected.getPlayers());
@@ -190,7 +192,8 @@ public class GameBookingService {
             allotFromWaiting(
                     booking.getGame(),
                     booking.getBookingDate(),
-                    booking.getBookingTime()
+                    booking.getBookingTime(),
+                    true
             );
         }
     }

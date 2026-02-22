@@ -24,7 +24,7 @@ public interface GameBookingRepository extends JpaRepository<GameBooking, Intege
 //            @Param("date") LocalDate date,
 //            @Param("time") LocalTime time,
 //            @Param("status") BookingStatusEnum status);
-
+    List<GameBooking> findByBookingDateAndBookingTimeAndBookingStatus(LocalDate bookingDate, LocalTime bookingTime, BookingStatusEnum bookingStatus);
     boolean existsByBookingDateAndPlayersContainsAndBookingStatus(LocalDate bookingDate, Employee players, BookingStatusEnum bookingStatus);
 
     List<GameBooking> findByGameAndGameCycleAndBookingDateAndBookingStatus(Game game, GameCycle gameCycle, LocalDate bookingDate, BookingStatusEnum bookingStatus);
