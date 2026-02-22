@@ -1,5 +1,5 @@
 import { Sidebar, SidebarCollapse, SidebarItem, SidebarItemGroup, SidebarItems } from 'flowbite-react';
-import { BookmarkCheck, Briefcase, BriefcaseBusiness, CalendarCheck, Files, FileText, Home, IndianRupee, Landmark, Mail, Network, Plane, Settings, Share2, ShieldCheck, Swords, Wallet } from 'lucide-react';
+import { BookmarkCheck, Briefcase, BriefcaseBusiness, CalendarCheck, Files, FileText, Gamepad2, History, Home, IndianRupee, Landmark, Mail, Network, Plane, Settings, Share2, ShieldCheck, Swords, Wallet } from 'lucide-react';
 import React from 'react'
 import { useSelector } from 'react-redux';
 import type { RootStateType } from '../redux-store/store';
@@ -115,7 +115,7 @@ function Sidebar2() {
               }
           </NavLink>
         </SidebarItemGroup>
-        <SidebarCollapse icon={Swords} label='Game'>
+        <SidebarCollapse icon={Gamepad2} label='Game'>
           <NavLink hidden={user.role != 'HR'} to='/manage-game'>
             {
                 ({isActive} : {isActive: boolean}) => (
@@ -130,6 +130,24 @@ function Sidebar2() {
                 ({isActive} : {isActive: boolean}) => (
                   <SidebarItem icon={CalendarCheck} className={isActive ? 'bg-blue-300' : ''}>
                     Book GameSlot
+                  </SidebarItem>
+                )
+              }
+          </NavLink>
+          <NavLink to='/booking-history'>
+            {
+                ({isActive} : {isActive: boolean}) => (
+                  <SidebarItem icon={History} className={isActive ? 'bg-blue-300' : ''}>
+                    History
+                  </SidebarItem>
+                )
+              }
+          </NavLink>
+          <NavLink to='/today-booking'>
+            {
+                ({isActive} : {isActive: boolean}) => (
+                  <SidebarItem icon={Swords} className={isActive ? 'bg-blue-300' : ''}>
+                    Today's Clash
                   </SidebarItem>
                 )
               }

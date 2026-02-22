@@ -20,6 +20,8 @@ import Refferal from './pages/job/Refferal'
 import ManageJobReferral from './pages/job/ManageJobReferral'
 import OrganizationChart from './pages/general/OrganizationChart'
 import GameBooking from './pages/game/GameBooking'
+import BookingHistory from './pages/game/BookingHistory'
+import TodayBooking from './pages/game/TodayBooking'
 // import GameBooking from './pages/game/GameBooking'
 
 function App() {
@@ -88,6 +90,14 @@ function App() {
         {
           path: '/book-game',
           element: <ProtectedRoute><GameBooking/></ProtectedRoute>
+        },
+        {
+          path: '/booking-history',
+          element: <ProtectedRoute><BookingHistory/></ProtectedRoute>
+        },
+        {
+          path: '/today-booking',
+          element: <ProtectedRoute><TodayBooking/></ProtectedRoute>
         }
 
       ]

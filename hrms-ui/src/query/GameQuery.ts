@@ -78,6 +78,6 @@ export const useGetEmployeeBookingsInCycle = (gameId: number,employeeId: number)
 export const useGetAllEmployeeBookings = (employeeId: number, page: number,size: number) => {
     return useQuery({
         queryKey: ["employeeBookings", employeeId, page, size],
-        queryFn: employeeId ? () => getAllEmployeeBookings(employeeId, page, size) : skipToken,
+        queryFn: () => getAllEmployeeBookings(employeeId, page, size),
     })
 }

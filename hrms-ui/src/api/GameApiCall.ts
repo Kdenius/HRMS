@@ -59,5 +59,5 @@ export const getEmployeeBookingsInCycle = async (gameId: number,employeeId: numb
 
 export const getAllEmployeeBookings = async (employeeId: number,page: number,size: number): Promise<PageResponseType<GameBookingResponseType>> => {
     const response = await Api.get(`/booking/employee/${employeeId}?page=${page}&size=${size}`)
-    return response.data.data
+    return response.data.data;
 }
