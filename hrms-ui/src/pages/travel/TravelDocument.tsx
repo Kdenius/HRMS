@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { useGetEmployeeDocuments } from "../query/EmployeeQuery";
-import { useGetDocumentByUrl, useGetTravelDocumentRequest, useSubmitTravelDocument } from "../query/DocumentQuery";
-import { useGetProvidedDocument, useGetTravelPlanByEmployee } from "../query/TravelPlanQuery";
+import { useGetEmployeeDocuments } from "../../query/EmployeeQuery";
+import { useGetDocumentByUrl, useGetTravelDocumentRequest, useSubmitTravelDocument } from "../../query/DocumentQuery";
+import { useGetProvidedDocument, useGetTravelPlanByEmployee } from "../../query/TravelPlanQuery";
 import { useSelector } from "react-redux";
-import type { RootStateType } from "../redux-store/store";
+import type { RootStateType } from "../../redux-store/store";
 import toast from "react-hot-toast";
 import { Badge, Button, Card, Modal, ModalBody, ModalFooter, ModalHeader } from "flowbite-react";
 

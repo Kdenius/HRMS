@@ -1,11 +1,11 @@
 import { Badge, Button, Card, Modal, ModalBody, ModalFooter, ModalHeader, Select, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from 'flowbite-react'
 import React, { useEffect, useMemo, useState } from 'react'
-import { useGetTravelPlan } from '../query/TravelPlanQuery';
-import { useGetExpenseByTravelPlan, useVerifyTravelExpense } from '../query/ExpenseQuery';
+import { useGetTravelPlan } from '../../query/TravelPlanQuery';
+import { useGetExpenseByTravelPlan, useVerifyTravelExpense } from '../../query/ExpenseQuery';
 import toast from 'react-hot-toast';
 import { Eye } from 'lucide-react';
-import { type TravelExpenseResponseType } from '../types/TravelPlan';
-import { useGetDocumentByUrl } from '../query/DocumentQuery';
+import { type TravelExpenseResponseType } from '../../types/TravelPlan';
+import { useGetDocumentByUrl } from '../../query/DocumentQuery';
 
 function ManageExpense() {
   const [selectedPlanId, setSelectedPlanId] = useState<number>();
@@ -24,13 +24,13 @@ function ManageExpense() {
   const verifyExpenseMutation = useVerifyTravelExpense();
   const selectedPlan = travelPlans.find((tp) => tp.travelPlanId == selectedPlanId);
   const [selectedExpense, setSelectedExpense] = useState<TravelExpenseResponseType>();
-  const {data:bill,refetch:refetch2} = useGetDocumentByUrl(selectedExpense?.proofUrl!);
+  const { data: bill, refetch: refetch2 } = useGetDocumentByUrl(selectedExpense?.proofUrl!);
 
-  useEffect(()=>{
+  useEffect(() => {
     console.log('commint')
-    if(bill)
+    if (bill)
       window.open(URL.createObjectURL(bill!), '_blank');
-  },[bill])
+  }, [bill])
 
   return (
     <>
@@ -52,7 +52,6 @@ function ManageExpense() {
               <TableHeadCell>Type</TableHeadCell>
               <TableHeadCell>Amount</TableHeadCell>
               <TableHeadCell>Status</TableHeadCell>
-              {/* <TableHeadCell>Remark</TableHeadCell> */}
               <TableHeadCell>Action</TableHeadCell>
             </TableHead>
 
@@ -78,9 +77,6 @@ function ManageExpense() {
                   <TableCell>
                     <Badge color={getStatusColor(expense.status)}>{expense.status}</Badge>
                   </TableCell>
-                  {/* <TableCell>
-                    {expense.remark ?? "—"}
-                  </TableCell> */}
                   <TableCell>
                     <div className="flex gap-2">
                       {expense.status === "Submitted" && (
@@ -98,7 +94,10 @@ function ManageExpense() {
                           }}>Reject</Button>
                         </>
                       )}
-                      <Button size="xs" color="gray" onClick={()=>setSelectedExpense(expense)}>
+                      <Button size="xs" color="gray" onClick={() => {
+                        setSelectedExpense(expense);
+                        refetch2();
+                      }}>
                         <Eye size={14} />
                       </Button>
                     </div>
@@ -108,49 +107,6 @@ function ManageExpense() {
             </TableBody>
           </Table>
         </Card>
-      }
-
-      {selectedExpense && <Modal show={selectedExpense != undefined}>
-        <ModalHeader>Expense Details</ModalHeader>
-        <ModalBody>
-          <div className="space-y-2 text-sm">
-            <p>
-              <strong>Detail:</strong>{" "}
-              {selectedExpense?.expenseDetail}
-            </p>
-            <p>
-              <strong>Date:</strong>{" "}
-              {new Date(selectedExpense?.expenseDate!).toLocaleDateString('en-GB')}
-            </p>
-            <p>
-              <strong>Amount:</strong> ₹
-              {selectedExpense?.amount}
-            </p>
-            <p>
-              <strong>Status:</strong>{" "}
-              {selectedExpense?.status}
-            </p>
-            <p>
-              <strong>Approver:</strong>{" "}
-              {selectedExpense?.approver?.firstName ?? "—"}
-            </p>
-            {/* <p>
-              <strong>Remark:</strong>{" "}
-              {selectedExpense?.remark ?? "—"}
-            </p> */}
-            {selectedExpense?.proofUrl && <Button onClick={() => {refetch2()}}>Bill</Button>}
-          </div>
-        </ModalBody>
-
-        <ModalFooter>
-          <Button
-            color="gray"
-            onClick={() => setSelectedExpense(undefined)}
-          >
-            Close
-          </Button>
-        </ModalFooter>
-      </Modal>
       }
     </>
   )

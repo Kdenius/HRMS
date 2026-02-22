@@ -1,4 +1,4 @@
-import type EmployeeDocument from "../pages/EmployeeDocument";
+import type EmployeeDocument from "../pages/travel/EmployeeDocument";
 import type { ApiResponseType } from "../types/ApiResponse";
 import type { EmployeeDetailType, LoginDetailType, LoginResponseType } from "../types/AuthType";
 import type { EmployeeDocumentType, TravelEmployeeType } from "../types/TravelPlan";

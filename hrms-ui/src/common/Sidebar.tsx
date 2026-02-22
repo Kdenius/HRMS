@@ -29,7 +29,7 @@ function Sidebar2() {
               )}
             </NavLink>
 
-          <SidebarCollapse icon={Plane} label="Travel Plane">
+          <SidebarCollapse icon={Plane} label="Travels">
             <NavLink hidden={user.role != 'HR'} to='/manage-travel'>
               {
               ({ isActive }: { isActive: boolean }) => (
@@ -50,7 +50,7 @@ function Sidebar2() {
               {
               ({ isActive }: { isActive: boolean }) => (
                 <SidebarItem icon={ShieldCheck} className={isActive ? 'bg-blue-300' : ''}>
-                  Document Varification
+                  Document Verification
                 </SidebarItem>
               )}
             </NavLink>
@@ -152,7 +152,7 @@ function Sidebar2() {
               }
           </NavLink>
         </SidebarCollapse>
-        <NavLink to='/configuration'>
+        <NavLink hidden={user.role != 'HR'} to='/configuration'>
               {
               ({ isActive }: { isActive: boolean }) => (
                 <SidebarItem icon={Settings} className={isActive ? 'bg-blue-300' : ''}>

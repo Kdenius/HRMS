@@ -2,11 +2,11 @@ import { Button, Card, FileInput, Label, Modal, ModalBody, ModalFooter, ModalHea
 import { Eye, Pencil, Plus, Upload } from 'lucide-react';
 import React, { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form';
-import { useAddDocument, useGetDocumentTypes, useGetEmployeeDocument } from '../query/DocumentQuery';
-import type { DocumentSubmitType, EmployeeDocumentType } from '../types/TravelPlan';
-import { useGetEmployeeDocuments, useUpdateEmployeeDocument } from '../query/EmployeeQuery';
+import { useAddDocument, useGetDocumentTypes, useGetEmployeeDocument } from '../../query/DocumentQuery';
+import type { DocumentSubmitType, EmployeeDocumentType } from '../../types/TravelPlan';
+import { useGetEmployeeDocuments, useUpdateEmployeeDocument } from '../../query/EmployeeQuery';
 import { useSelector } from 'react-redux';
-import type { RootStateType } from '../redux-store/store';
+import type { RootStateType } from '../../redux-store/store';
 import toast from 'react-hot-toast';
 
 function EmployeeDocument() {
@@ -16,7 +16,7 @@ function EmployeeDocument() {
     const { mutate, isPending, isError, error } = useAddDocument();
     const [documentId, setDocumentId] = useState<number>();
     const { data: employeeDocument, isLoading } = useGetEmployeeDocument(documentId!);
-    const {mutate:mutate2, isPending:isPending2, isError:isError2, error:error2} = useUpdateEmployeeDocument();
+    const { mutate: mutate2, isPending: isPending2, isError: isError2, error: error2 } = useUpdateEmployeeDocument();
 
     const [openModal, setOpenModal] = useState<string>();
     const [selectedDocument, setSelectedDocument] = useState<EmployeeDocumentType | null>(null);
@@ -44,16 +44,25 @@ function EmployeeDocument() {
     };
 
     const onSubmit = (data: DocumentSubmitType) => {
+        if (!data.fileList || data.fileList.length == 0) {
+            toast.error('please upload a document')
+            return;
+        }
         const formData = new FormData();
         formData.append('file', data.fileList[0]);
-        if(openModal == 'edit'){
-            mutate2({documentId: data.documentTypeId,
+        if (openModal == 'edit') {
+            mutate2({
+                documentId: selectedDocument?.employeeDocumentId!,
                 form: formData
-            },{
+            }, {
                 onSuccess: (data) => {
-                console.log(data);
-                toast.success(data.message);
-            }
+                    // console.log(data);
+                    toast.success(data.message);
+                    refetch();
+                    setOpenModal(undefined);
+                    reset();
+                },
+                onError: (err) => toast.error(err.message)
             });
             return;
         }
@@ -61,12 +70,14 @@ function EmployeeDocument() {
         formData.append('employeeId', user.userId.toString());
         mutate(formData, {
             onSuccess: (data) => {
-                console.log(data);
+                // console.log(data);
                 toast.success(data.message);
                 refetch();
+                setOpenModal(undefined);
+                reset();
             },
             onError: (error) => {
-                console.log(error)
+                toast.error(error.message)
             }
         })
         setOpenModal(undefined);
@@ -118,7 +129,7 @@ function EmployeeDocument() {
                 </Card>
             </div>
 
-            <Modal show={openModal === "view"} size='7xl'  onClose={() => setOpenModal(undefined)}>
+            <Modal show={openModal === "view"} size='7xl' onClose={() => setOpenModal(undefined)}>
                 <ModalHeader>
                     View Document - {selectedDocument?.documentTypeName}
                 </ModalHeader>
@@ -128,7 +139,7 @@ function EmployeeDocument() {
                             <iframe
                                 src={employeeDocument && URL.createObjectURL(employeeDocument!)}
                                 title="Document Preview"
-                            className="w-full h-full rounded-md object-contain"
+                                className="w-full h-full rounded-md object-contain"
                             />
                         }
                     </div>
@@ -168,7 +179,7 @@ function EmployeeDocument() {
                             <div className="border-2 border-dashed border-blue-300 p-6 rounded-lg text-center cursor-pointer hover:bg-blue-50 transition-all">
                                 <Upload className="mx-auto mb-3 text-blue-500" size={32} />
                                 <p className="text-sm text-gray-600">Click to upload document</p>
-                                <input type="file" hidden {...register("fileList", { required: true })} className="mt-3"></input>
+                                <input type="file" hidden {...register("fileList")} className="mt-3"></input>
                             </div>
                         </label>
                     </ModalBody>

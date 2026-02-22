@@ -1,30 +1,30 @@
-import { Button, Card, Label, Modal, ModalBody, ModalFooter, ModalHeader, Spinner, Textarea, TextInput } from 'flowbite-react';
+import { Alert, Button, Card, Label, Modal, ModalBody, ModalFooter, ModalHeader, Spinner, Textarea, TextInput } from 'flowbite-react';
 import { Palette, Plus, X } from 'lucide-react';
 import React, { useState } from 'react'
 import { useForm, type SubmitHandler } from 'react-hook-form';
-import { useCreateTravelPlan, useGetTravelPlan, useManageTravelDocument, useManageTravelEmployee, useUpdateTravelPlan } from '../query/TravelPlanQuery';
-import {type DocumentType, type TravelEmployeeType, type TravelPlanCreate, type TravelPlanType } from '../types/TravelPlan';
+import { useCreateTravelPlan, useGetTravelPlan, useManageTravelDocument, useManageTravelEmployee, useUpdateTravelPlan } from '../../query/TravelPlanQuery';
+import { type DocumentType, type TravelEmployeeType, type TravelPlanCreate, type TravelPlanType } from '../../types/TravelPlan';
 import toast from 'react-hot-toast';
-import { useGetEmployees } from '../query/EmployeeQuery';
-import { useGetDocumentTypes } from '../query/DocumentQuery';
+import { useGetEmployees } from '../../query/EmployeeQuery';
+import { useGetDocumentTypes } from '../../query/DocumentQuery';
 
 function ManageTravel() {
     const [isEditMode, setIsEditMode] = useState<boolean>(false);
-    const { register, handleSubmit, reset } = useForm<TravelPlanCreate>();
+    const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<TravelPlanCreate>();
     const { data: travelPlans, refetch: refetchTravelPlan, isLoading } = useGetTravelPlan();
-    const {data:data1, mutate:mutate1, isPending:isPending1, isError:isError1, error:error1} = useCreateTravelPlan();
+    const { data: data1, mutate: mutate1, isPending: isPending1, isError: isError1, error: error1 } = useCreateTravelPlan();
     const [openModal, setOpenModal] = useState<string>();
     const [selectedTravelPlan, setSelectedTravelPlan] = useState<TravelPlanType>();
     const [selectedEmployees, setSelectedEmployees] = useState<TravelEmployeeType[]>();
     const [selectedDocuments, setSelectedDocuments] = useState<DocumentType[]>();
-    const {data:allEmployees, isLoading:emploading } = useGetEmployees();
-    const {data:allDocuments} = useGetDocumentTypes();
-    const {mutate:mutate2, isPending:isPending2, isError:isError2, error:error2} = useManageTravelEmployee();
-    const {mutate:mutate3, isPending:isPending3, isError:isError3, error:error3} = useManageTravelDocument();
-    const {mutate:mutate4, isPending:isPending4, isError:isError4, error:error4} = useUpdateTravelPlan();
+    const { data: allEmployees, isLoading: emploading } = useGetEmployees();
+    const { data: allDocuments } = useGetDocumentTypes();
+    const { mutate: mutate2, isPending: isPending2, isError: isError2, error: error2 } = useManageTravelEmployee();
+    const { mutate: mutate3, isPending: isPending3, isError: isError3, error: error3 } = useManageTravelDocument();
+    const { mutate: mutate4, isPending: isPending4, isError: isError4, error: error4 } = useUpdateTravelPlan();
 
     const onSubmit: SubmitHandler<TravelPlanCreate> = (travel) => {
-        if(openModal == 'edit'){
+        if (openModal == 'edit') {
             mutate4(travel, {
                 onSuccess: (data) => {
                     reset();
@@ -33,7 +33,6 @@ function ManageTravel() {
                     refetchTravelPlan();
                 }
             })
-
             return;
         }
         mutate1(travel, {
@@ -48,18 +47,18 @@ function ManageTravel() {
             }
         })
     }
-    const onError = () => {}
-    const openSelection = (plan:TravelPlanType) => {
+    const onError = () => { }
+    const openSelection = (plan: TravelPlanType) => {
         setSelectedTravelPlan(plan);
         setSelectedEmployees(plan.travelEmployees)
         setOpenModal('select');
     }
-    const openDocument = (plan:TravelPlanType) => {
+    const openDocument = (plan: TravelPlanType) => {
         setSelectedTravelPlan(plan);
         setSelectedDocuments(plan.documentTypes);
         setOpenModal('document');
     }
-    const openEdit = (plan:TravelPlanType) => {
+    const openEdit = (plan: TravelPlanType) => {
         reset({
             travelPlanId: plan.travelPlanId,
             title: plan.title,
@@ -71,21 +70,21 @@ function ManageTravel() {
     }
     const handleSelect = () => {
         mutate2({
-                travelPlanId: selectedTravelPlan?.travelPlanId!,
-                employeeIds: selectedEmployees?.map(e => e.employeeId)!
-            },
-        {
-            onSuccess: (data) => {
-                toast.success(data.message);
-                setOpenModal(undefined)
-                refetchTravelPlan()
-            },
-            onError: (error) => {
-                console.log(error)
-            }
-        })
+            travelPlanId: selectedTravelPlan?.travelPlanId!,
+            employeeIds: selectedEmployees?.map(e => e.employeeId)!
+        },
+            {
+                onSuccess: (data) => {
+                    toast.success(data.message);
+                    setOpenModal(undefined)
+                    refetchTravelPlan()
+                },
+                onError: (error) => {
+                    console.log(error)
+                }
+            })
     }
-    const handleDocument = () =>{
+    const handleDocument = () => {
         mutate3({
             travelPlanId: selectedTravelPlan?.travelPlanId!,
             documentTypeIds: selectedDocuments?.map(d => d.documentTypeId)!
@@ -97,7 +96,7 @@ function ManageTravel() {
             }
         })
     }
-    
+
     return (
         <>
             <div className='grid grid-cols-3 gap-6'>
@@ -109,14 +108,14 @@ function ManageTravel() {
                             </div>
                             <p className='text-gray-700 text-sm'>{plan.description}</p>
                             <div className='text-sm text-gray-600 space-y-1 mb-4'>
-                                <p>Start : {new Date(plan.startTime).toLocaleDateString('en-GB', {hour: 'numeric',minute: '2-digit',})}</p>
-                                <p>End : {new Date(plan.endTime).toLocaleDateString('en-GB', {hour: 'numeric',minute: '2-digit',})}</p>
+                                <p>Start : {new Date(plan.startTime).toLocaleDateString('en-GB', { hour: 'numeric', minute: '2-digit', })}</p>
+                                <p>End : {new Date(plan.endTime).toLocaleDateString('en-GB', { hour: 'numeric', minute: '2-digit', })}</p>
                                 <p>Created By : {plan.createdBy.email}</p>
                             </div>
                             <div className='flex gap-3 mt-auto'>
-                                <Button size='xs' color='blue' onClick={()=>openSelection(plan)}>Employee Selection</Button>
-                                <Button size='xs' color='blue' onClick={()=>openDocument(plan)}>Document Required</Button>
-                                <Button size='xs' color='blue' onClick={()=>openEdit(plan)}>Edit</Button>
+                                <Button size='xs' color='blue' onClick={() => openSelection(plan)}>Employee Selection</Button>
+                                <Button size='xs' color='blue' onClick={() => openDocument(plan)}>Document Required</Button>
+                                <Button size='xs' color='blue' onClick={() => openEdit(plan)}>Edit</Button>
                             </div>
                         </Card>
                     ))
@@ -136,24 +135,48 @@ function ManageTravel() {
                 <ModalBody>
                     <form className="space-y-4" onSubmit={handleSubmit(onSubmit, onError)}>
                         <div>
-                            <Label htmlFor="title">Value</Label>
-                            <TextInput id="title" {...register("title")} placeholder="Enter travel title" required />
+                            <Label htmlFor="title">Title</Label>
+                            <TextInput id="title" {...register("title", { required: "Title is Require" })} placeholder="Enter travel title" required />
                         </div>
                         <div>
                             <Label htmlFor="description"> Description </Label>
-                            <Textarea id="description" {...register("description")} placeholder="Enter description" rows={3} required />
+                            <Textarea id="description" {...register("description", { required: "Description is required" })} placeholder="Enter description" rows={3} required />
                         </div>
                         <div>
                             <Label htmlFor="startTime">Start Time</Label>
-                            <TextInput type="datetime-local" id="startTime" {...register("startTime")} required />
+                            <TextInput type="datetime-local" id="startTime" {...register("startTime", {
+                                required: "start time is required",
+                                validate: (value) => {
+                                    if (new Date(value) <= new Date())
+                                        return "Start time must be in future";
+                                    return true;
+                                }
+                            })} required />
                         </div>
                         <div>
                             <Label htmlFor="endTime" >End Time</Label>
-                            <TextInput type="datetime-local" id="endTime" {...register("endTime")} required />
+                            <TextInput type="datetime-local" id="endTime" {...register("endTime", {
+                                required: "endtime is required",
+                                validate: (value) => {
+                                    if (new Date(value) <= new Date(watch('startTime')))
+                                        return "End time must be after start time";
+                                    return true;
+                                }
+                            })} required />
                         </div>
+                        {Object.keys(errors).length > 0 && <Alert color='failure'>{errors.title?.message || errors.description?.message || errors.startTime?.message || errors.endTime?.message}</Alert>}
 
                         <div className="flex justify-end gap-2 pt-4">
-                            <Button color="gray" onClick={()=> setOpenModal(undefined)}>
+                            <Button color="gray" onClick={() => {
+                                setOpenModal(undefined);
+                                reset({
+                                    travelPlanId: undefined,
+                                    title: undefined,
+                                    description: undefined,
+                                    startTime: undefined,
+                                    endTime: undefined
+                                });
+                            }}>
                                 Cancel
                             </Button>
 
@@ -180,7 +203,7 @@ function ManageTravel() {
                                     <div key={emp.employeeId} className="flex items-center bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
                                         {emp.firstName} {emp.lastName}
                                         <button className="ml-2 hover:text-red-500"
-                                        onClick={()=>setSelectedEmployees(selectedEmployees.filter(e => e.employeeId != emp.employeeId))}>✕</button>
+                                            onClick={() => setSelectedEmployees(selectedEmployees.filter(e => e.employeeId != emp.employeeId))}>✕</button>
                                     </div>
                                 ))}
                             </div>
@@ -193,10 +216,10 @@ function ManageTravel() {
                                 <div
                                     key={emp.employeeId}
                                     className="p-3 hover:bg-gray-50 cursor-pointer"
-                                    onClick={()=>{
+                                    onClick={() => {
                                         // console.log(selectedEmployees);
-                                        if(!selectedEmployees?.find(e=>e.employeeId==emp.employeeId)){
-                                            setSelectedEmployees((employees)=>[...employees!, emp])
+                                        if (!selectedEmployees?.find(e => e.employeeId == emp.employeeId)) {
+                                            setSelectedEmployees((employees) => [...employees!, emp])
                                         }
                                     }}
                                 >
@@ -212,7 +235,7 @@ function ManageTravel() {
                     </div>
                 </ModalBody>
                 <ModalFooter>
-                    <Button onClick={handleSelect}>{isPending2 && <Spinner size='sm'/>}Save</Button>
+                    <Button onClick={handleSelect}>{isPending2 && <Spinner size='sm' />}Save</Button>
                     <Button color="gray" onClick={() => setOpenModal(undefined)}>Close</Button>
                 </ModalFooter>
             </Modal>
@@ -231,9 +254,9 @@ function ManageTravel() {
                                     >
                                         {doc.documentTypeName}
                                         <button className="ml-2 hover:text-red-500"
-                                        onClick={()=>{
-                                            setSelectedDocuments(selectedDocuments.filter(d => d.documentTypeId != doc.documentTypeId));
-                                        }}
+                                            onClick={() => {
+                                                setSelectedDocuments(selectedDocuments.filter(d => d.documentTypeId != doc.documentTypeId));
+                                            }}
                                         >✕</button>
                                     </div>
                                 ))}
@@ -248,9 +271,9 @@ function ManageTravel() {
                                         <div
                                             key={doc.documentTypeId}
                                             className="p-3 hover:bg-gray-50 cursor-pointer"
-                                            onClick={()=>{
-                                                if(!selectedDocuments?.find((d)=>d.documentTypeId == doc.documentTypeId)){
-                                                    setSelectedDocuments((docs)=>[...docs!, doc]);
+                                            onClick={() => {
+                                                if (!selectedDocuments?.find((d) => d.documentTypeId == doc.documentTypeId)) {
+                                                    setSelectedDocuments((docs) => [...docs!, doc]);
                                                 }
                                             }}
                                         >
@@ -266,7 +289,7 @@ function ManageTravel() {
                 </ModalBody>
                 <ModalFooter>
                     <Button onClick={handleDocument}>Save</Button>
-                    <Button color={'gray'} onClick={()=>setOpenModal(undefined)}>Cancle</Button>
+                    <Button color={'gray'} onClick={() => setOpenModal(undefined)}>Cancle</Button>
                 </ModalFooter>
             </Modal>
         </>

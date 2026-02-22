@@ -1,14 +1,14 @@
 import { CircleAlert, Lock, Mail, Send, UserIcon } from 'lucide-react'
 import React, { useState, type ChangeEvent } from 'react'
 import { Alert, Button, Card, Label, Modal, ModalBody, ModalHeader, Spinner, TextInput, Toast, ToastToggle } from 'flowbite-react'
-import { useLogin, useResetPasswordRequest } from '../query/EmployeeQuery';
-import type { LoginDetailType } from '../types/AuthType';
 import { useForm, type SubmitErrorHandler, type SubmitHandler } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import type { AppDispatchType } from '../redux-store/store';
-import { Authenticate } from '../redux-store/UserSlice';
+import { useLogin, useResetPasswordRequest } from '../../query/EmployeeQuery';
+import type { LoginDetailType } from '../../types/AuthType';
+import type { AppDispatchType } from '../../redux-store/store';
+import { Authenticate } from '../../redux-store/UserSlice';
 
 function Login() {
     const [openModel, setOpenModel] = useState<boolean>(false);

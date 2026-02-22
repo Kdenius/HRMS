@@ -1,13 +1,13 @@
 import { Plus, Eye, Pencil } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { useGetTravelPlanForExpense } from "../query/TravelPlanQuery";
+import { useGetTravelPlanForExpense } from "../../query/TravelPlanQuery";
 import { useSelector } from "react-redux";
-import type { RootStateType } from "../redux-store/store";
-import { useCreateTravelExpense, useGetExpenseByEmployee, useGetExpenseType, useSubmitTravelExpense } from "../query/ExpenseQuery";
-import type { TravelExpenseResponseType, TravelExpenseSubmitType } from "../types/TravelPlan";
+import type { RootStateType } from "../../redux-store/store";
+import { useCreateTravelExpense, useGetExpenseByEmployee, useGetExpenseType, useSubmitTravelExpense } from "../../query/ExpenseQuery";
+import type { TravelExpenseResponseType, TravelExpenseSubmitType } from "../../types/TravelPlan";
 import { useForm, type SubmitErrorHandler, type SubmitHandler } from "react-hook-form";
 import toast from "react-hot-toast";
-import { useGetDocumentByUrl } from "../query/DocumentQuery";
+import { useGetDocumentByUrl } from "../../query/DocumentQuery";
 import { Badge, Button, Card, Label, Modal, ModalBody, ModalFooter, ModalHeader, Select, Spinner, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, TextInput } from "flowbite-react";
 
 function EmployeeTravelExpense() {
@@ -112,7 +112,7 @@ function EmployeeTravelExpense() {
             <TableHeadCell>Type</TableHeadCell>
             <TableHeadCell>Amount</TableHeadCell>
             <TableHeadCell>Status</TableHeadCell>
-            <TableHeadCell>Remark</TableHeadCell>
+            {/* <TableHeadCell>Remark</TableHeadCell> */}
             <TableHeadCell>Action</TableHeadCell>
           </TableHead>
 
@@ -137,9 +137,9 @@ function EmployeeTravelExpense() {
                 <TableCell>
                   <Badge color={getStatusColor(expense.status)}>{expense.status}</Badge>
                 </TableCell>
-                <TableCell>
+                {/* <TableCell>
                   {expense.remark ?? "—"}
-                </TableCell>
+                </TableCell> */}
                 <TableCell>
                   <div className="flex gap-2">
                     {expense.status === "Draft" && (
@@ -161,7 +161,7 @@ function EmployeeTravelExpense() {
                     <Button size="xs" color="gray"
                       onClick={() => {
                         setSelectedExpense(expense);
-                        setOpenModal("view");
+                        refetch()
                       }}>
                       <Eye size={14} />
                     </Button>
@@ -235,47 +235,6 @@ function EmployeeTravelExpense() {
         </form>
       </Modal>
 
-      <Modal show={openModal === "view"}>
-        <ModalHeader>Expense Details</ModalHeader>
-        <ModalBody>
-          <div className="space-y-2 text-sm">
-            <p>
-              <strong>Detail:</strong>{" "}
-              {selectedExpense?.expenseDetail}
-            </p>
-            <p>
-              <strong>Date:</strong>{" "}
-              {new Date(selectedExpense?.expenseDate!).toLocaleDateString('en-GB')}
-            </p>
-            <p>
-              <strong>Amount:</strong>
-              ₹{selectedExpense?.amount}
-            </p>
-            <p>
-              <strong>Status:</strong>{" "}
-              {selectedExpense?.status}
-            </p>
-            <p>
-              <strong>Approver:</strong>{" "}
-              {selectedExpense?.approver?.firstName ?? "—"}
-            </p>
-            <p>
-              <strong>Remark:</strong>{" "}
-              {selectedExpense?.remark ?? "—"}
-            </p>
-            {selectedExpense?.proofUrl && <Button onClick={() => refetch()}>Bill</Button>}
-          </div>
-        </ModalBody>
-
-        <ModalFooter>
-          <Button
-            color="gray"
-            onClick={() => setOpenModal(undefined)}
-          >
-            Close
-          </Button>
-        </ModalFooter>
-      </Modal>
     </>
   );
 }

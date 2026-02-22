@@ -1,8 +1,8 @@
 import { Card, Modal, ModalBody, ModalHeader, ModalFooter, Button, Select, Table, Badge, TableHead, TableHeadCell, TableBody, TableRow, TableCell, Spinner, Label, FileInput } from "flowbite-react";
 import React, { useEffect, useMemo, useState } from "react";
-import type { TravelEmployeeType, TravelPlanType } from "../types/TravelPlan";
-import { useAddProvidedDocument, useGetProvidedDocument, useGetTravelPlan } from "../query/TravelPlanQuery";
-import { useGetDocumentByUrl, useGetDocumentTypes, useGetEmployeeDocument, useGetTravelDocumentRequest, useVerifyTravelDocument } from "../query/DocumentQuery";
+import type { TravelEmployeeType, TravelPlanType } from "../../types/TravelPlan";
+import { useAddProvidedDocument, useGetProvidedDocument, useGetTravelPlan } from "../../query/TravelPlanQuery";
+import { useGetDocumentByUrl, useGetDocumentTypes, useGetEmployeeDocument, useGetTravelDocumentRequest, useVerifyTravelDocument } from "../../query/DocumentQuery";
 import toast from "react-hot-toast";
 import { useForm, type SubmitHandler } from "react-hook-form";
 

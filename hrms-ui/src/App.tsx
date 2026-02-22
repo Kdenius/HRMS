@@ -4,15 +4,14 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Navbar from './common/Navbar'
 import Sidebar from './common/Sidebar'
 import MainLayout from './common/MainLayout'
-import Login from './pages/Login'
-import ResetPassword from './pages/ResetPassword'
+import ResetPassword from './pages/travel/ResetPassword'
 import ProtectedRoute from './common/ProtectedRoute'
-import ManageTravel from './pages/ManageTravel'
-import ManageExpense from './pages/ManageExpense'
-import EmployeeDocument from './pages/EmployeeDocument'
-import TravelDocument from './pages/TravelDocument'
-import EmployeeTravelExpense from './pages/EmployeeTravelExpense'
-import DocumentVarification from './pages/DocumentVarification'
+import ManageTravel from './pages/travel/ManageTravel'
+import ManageExpense from './pages/travel/ManageExpense'
+import EmployeeDocument from './pages/travel/EmployeeDocument'
+import TravelDocument from './pages/travel/TravelDocument'
+import EmployeeTravelExpense from './pages/travel/EmployeeTravelExpense'
+import DocumentVarification from './pages/travel/DocumentVarification'
 import ManageGames from './pages/game/ManageGames'
 import ManageJob from './pages/job/ManageJob'
 import OpenJob from './pages/job/OpenJob'
@@ -23,6 +22,7 @@ import GameBooking from './pages/game/GameBooking'
 import BookingHistory from './pages/game/BookingHistory'
 import TodayBooking from './pages/game/TodayBooking'
 import Configuration from './pages/general/Configuration'
+import Login from './pages/general/Login'
 // import GameBooking from './pages/game/GameBooking'
 
 function App() {
@@ -41,7 +41,7 @@ function App() {
       element: <ProtectedRoute><MainLayout/></ProtectedRoute>,
       children: [
         {path:'/',
-          element: <>Main Body</>
+          element: <><h1>Welcome to HRMS</h1></>
         },
         {
           path: '/manage-travel',
