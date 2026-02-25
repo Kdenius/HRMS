@@ -29,7 +29,7 @@ interface PostCardProps {
   onDelete: (id: number) => void
   onAuthorClick: (authorId: number) => void
   onComment: (postId: number) => void
-  isHR?: boolean
+  onHrDelete: (id: number) => void
 }
 
 export const PostCard: React.FC<PostCardProps> = ({
@@ -40,7 +40,7 @@ export const PostCard: React.FC<PostCardProps> = ({
   onDelete,
   onAuthorClick,
   onComment,
-  isHR = true,
+  onHrDelete,
 }) => {
   const user = useSelector((state: RootStateType) => state.user)
   const initials =
@@ -123,16 +123,20 @@ export const PostCard: React.FC<PostCardProps> = ({
                 arrowIcon={false}
               >
                 {user.userId == post.author.employeeId && (
-                  <DropdownItem onClick={() => onEdit(post)}>
-                    Edit
-                  </DropdownItem>
+                  <>
+                    <DropdownItem onClick={() => onEdit(post)}>
+                      Edit
+                    </DropdownItem>
+                    <DropdownItem
+                      onClick={() => onDelete(post.postId)}
+                    >
+                      Delete
+                    </DropdownItem>
+                  </>
                 )}
-                <DropdownItem
-                  onClick={() => onDelete(post.postId)}
-                >
-                  Delete
-                </DropdownItem>
-                {/* <DropdownItem>Report</DropdownItem> */}
+                {user.role == 'HR' && (
+                  <DropdownItem onClick={()=>onHrDelete(post.postId)}>Report</DropdownItem>
+                )}
               </Dropdown>
             }
           </div>

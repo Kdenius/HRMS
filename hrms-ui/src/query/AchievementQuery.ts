@@ -1,9 +1,9 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type { PostFilters } from "../types/AchievementType";
-import { createComment, createPost, deleteComment, deletePost, getComments, getPosts, getPostsByEmployee, likePost, unlikePost, updateComment, updatePost } from "../api/AchievementApiCall";
+import { createComment, createPost, deleteComment, deleteCommentByHr, deletePost, deletePostByHr, getComments, getPosts, getPostsByEmployee, likePost, unlikePost, updateComment, updatePost } from "../api/AchievementApiCall";
 
 // Get Posts
-export const useGetPosts = (filters?: PostFilters, page:number = 1) => {
+export const useGetPosts = (filters?: PostFilters, page: number = 1) => {
     return useQuery({
         queryKey: ["Posts", page, filters],
         queryFn: () => getPosts(page, filters),
@@ -83,3 +83,17 @@ export const useDeleteComment = () => {
         mutationFn: deleteComment,
     });
 };
+
+//delete comment by hr
+export const useDeleteCommentByHr = () => {
+    return useMutation({
+        mutationFn: deleteCommentByHr,
+    });
+}
+
+//delete post by hr
+export const useDeletePostByHr = () => {
+    return useMutation({
+        mutationFn: deletePostByHr,
+    });
+}

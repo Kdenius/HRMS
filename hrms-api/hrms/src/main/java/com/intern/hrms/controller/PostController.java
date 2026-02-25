@@ -95,7 +95,11 @@ public class PostController {
         Post saved = postService.updatePost(body, postId);
         return postService.toDto(saved, saved.getAuthor().getEmployeeId());
     }
-
+    @DeleteMapping("/{id}/hr/{remark}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deletePostByHr(@PathVariable int id, @PathVariable String remark) {
+        postService.hrDelete(id, remark);
+    }
     /** DELETE /posts/{id} -> void */
     @DeleteMapping("/{postId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -108,6 +112,12 @@ public class PostController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void like(@PathVariable int postId, Principal principal) {
         postService.likePost(postId, principal.getName());
+    }
+
+    @DeleteMapping("/comments/{id}/hr/{remark}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteByHr(@PathVariable int id, @PathVariable String remark) {
+        commentService.hrDelete(id, remark);
     }
 
     /** DELETE /comments/{id} -> void */

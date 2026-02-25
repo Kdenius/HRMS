@@ -7,6 +7,7 @@ import com.intern.hrms.entity.achivement.Post;
 import com.intern.hrms.repository.EmployeeRepository;
 import com.intern.hrms.repository.achievement.CommentRepository;
 import com.intern.hrms.repository.achievement.PostRepository;
+import com.intern.hrms.utility.MailSend;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,11 +20,13 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final EmployeeRepository employeeRepository;
+    private final MailSend mailSend;
 
-    public CommentService(CommentRepository commentRepository, PostRepository postRepository, EmployeeRepository employeeRepository) {
+    public CommentService(CommentRepository commentRepository, PostRepository postRepository, EmployeeRepository employeeRepository, MailSend mailSend) {
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.employeeRepository = employeeRepository;
+        this.mailSend = mailSend;
     }
 
     /** List active comments for a post */
@@ -63,5 +66,16 @@ public class CommentService {
         c.setActive(false);
         commentRepository.save(c);
     }
-}
 
+    public void hrDelete(int commentId, String remark){
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new NoSuchElementException("Comment not found"));
+        Employee commenter = comment.getCommentBy();
+        if (commenter != null) {
+            String emailBody = "Your comment on post '" + comment.getPost().getTitle() + "' has been removed by HR.\n Remark: " + remark;
+            mailSend.sendMail(List.of(commenter.getEmail()), null, "Comment removed by HR", emailBody, null);
+        }
+        comment.setActive(false);
+        commentRepository.save(comment);
+    }
+}

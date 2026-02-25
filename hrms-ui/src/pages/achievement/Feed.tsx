@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { FeedHeader } from './component/FeedHeader'
 import type { CreatePostPayload, Post, PostFilters, UpdatePostPayload } from '../../types/AchievementType'
 import { PostFilterBar } from './component/PostFilterBar';
-import { useCreatePost, useDeletePost, useGetPosts, useLikePost, useUnlikePost, useUpdatePost } from '../../query/AchievementQuery';
+import { useCreatePost, useDeletePost, useDeletePostByHr, useGetPosts, useLikePost, useUnlikePost, useUpdatePost } from '../../query/AchievementQuery';
 import { PostCard } from './component/PostCard';
 import PostFormModal from './component/PostFormModal';
 import { Button, Pagination, Spinner } from 'flowbite-react';
@@ -25,6 +25,7 @@ function Feed() {
     const createPostMutation = useCreatePost();
     const updatePostMutation = useUpdatePost();
     const deletePostMutation = useDeletePost();
+    const deletePostByHrMutation = useDeletePostByHr();
     const likePostMutation = useLikePost();
     const unlikePostMutation = useUnlikePost();
 
@@ -38,6 +39,7 @@ function Feed() {
     const [mode, setMode] = useState<'create' | 'edit'>();
     const [defaultValues, setDefaultValues] = useState<UpdatePostPayload | undefined>();
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [hrDeleteModalOpen, setHrDeleteModalOpen] = useState(false);
     const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
     const [commentModalOpen, setCommentModalOpen] = useState(false);
 
@@ -112,6 +114,18 @@ function Feed() {
         setCommentModalOpen(true);
     };
 
+    const onHrDelete = (id: number) => {
+        setSelectedPostId(id);
+        setHrDeleteModalOpen(true);
+    }
+
+    const handleHrDelete = async (remark: string) => {
+        await deletePostByHrMutation.mutateAsync({ id: selectedPostId!, remark: remark });
+        queryClient.invalidateQueries({ queryKey: ["Posts"] });
+        setHrDeleteModalOpen(false);
+        setSelectedPostId(null);
+    }
+
     return (
         <div className='h-full flex flex-col overflow-hidden -m-8 bg-background'>
             <FeedHeader onCreatePost={onCreatePost} onToggleSidebar={() => setFilterOpen(!filterOpen)} />
@@ -122,7 +136,7 @@ function Feed() {
             <CommentModal
                 postId={selectedPostId}
                 open={commentModalOpen}
-                onClose={() => setCommentModalOpen(false)}
+                onClose={() => {setCommentModalOpen(false); queryClient.invalidateQueries({ queryKey: ["Posts"] });}}
             />
 
             <div className="flex-1 overflow-hidden">
@@ -148,6 +162,7 @@ function Feed() {
                                         onDelete={onDeletePost}
                                         onEdit={onEditPost}
                                         onComment={onComment}
+                                        onHrDelete={onHrDelete}
                                     />
                                 ))}
 
@@ -186,6 +201,15 @@ function Feed() {
                 loading={deletePostMutation.isPending}
                 onConfirm={confirmDelete}
                 onClose={() => setDeleteModalOpen(false)}
+            />
+            <ConfirmModal
+                open={hrDeleteModalOpen}
+                title="Delete Content"
+                message="Please confirm deletion. You may add a remark."
+                danger
+                requireRemark
+                onConfirm={(remark) => handleHrDelete(remark!)}
+                onClose={() => setHrDeleteModalOpen(false)}
             />
         </div>
     )

@@ -3,15 +3,18 @@ package com.intern.hrms.service.post;
 import com.intern.hrms.dto.achievement.request.PostRequestDTO;
 import com.intern.hrms.dto.achievement.response.PostAuthorResponseDTO;
 import com.intern.hrms.dto.achievement.response.PostResponseDTO;
+import com.intern.hrms.entity.AppConfiguration;
 import com.intern.hrms.entity.Department;
 import com.intern.hrms.entity.Employee;
 import com.intern.hrms.entity.Role;
 import com.intern.hrms.entity.achivement.Comment;
 import com.intern.hrms.entity.achivement.Post;
+import com.intern.hrms.repository.AppConfigurationRepository;
 import com.intern.hrms.repository.DepartmentRepository;
 import com.intern.hrms.repository.EmployeeRepository;
 import com.intern.hrms.repository.RoleRepository;
 import com.intern.hrms.repository.achievement.PostRepository;
+import com.intern.hrms.utility.MailSend;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,12 +35,16 @@ public class PostService {
     private final EmployeeRepository employeeRepository;
     private final RoleRepository roleRepository;
     private final DepartmentRepository departmentRepository;
+    private final MailSend mailSend;
+    private final AppConfigurationRepository appConfigurationRepository;
 
-    public PostService(PostRepository postRepository, EmployeeRepository employeeRepository, RoleRepository roleRepository, DepartmentRepository departmentRepository) {
+    public PostService(PostRepository postRepository, EmployeeRepository employeeRepository, RoleRepository roleRepository, DepartmentRepository departmentRepository, MailSend mailSend, AppConfigurationRepository appConfigurationRepository) {
         this.postRepository = postRepository;
         this.employeeRepository = employeeRepository;
         this.roleRepository = roleRepository;
         this.departmentRepository = departmentRepository;
+        this.mailSend = mailSend;
+        this.appConfigurationRepository = appConfigurationRepository;
     }
 
     /** Create post from (title, description, isPublic, targetRoles, targetDepartments) */
@@ -228,5 +235,39 @@ public class PostService {
                 post.getLikedBy().stream().anyMatch(e -> e.getEmployeeId() == currentEmpId));
         dto.setIsLikedByCurrentUser(likedByMe);
         return dto;
+    }
+
+    public void createSystemPostForEmployee(Employee employee, String type) {
+        Post post = new Post();
+        post.setTitle(type.equals("birthday") ? "Happy Birthday " + employee.getFirstName() + "!"
+                : "Happy Work Anniversary " + employee.getFirstName() + "!");
+
+        String description = type.equals("birthday")
+                ? "Wishing " + employee.getFirstName() + " " + employee.getLastName() + " a very Happy Birthday!"
+                : "Celebrating " + employee.getFirstName() + " " + employee.getLastName() + " work anniversary!";
+
+        post.setDescription(description);
+        post.setCreatedAt(LocalDateTime.now());
+        post.setIsPublic(true);
+        post.setIsSystemGenerated(true);
+        post.setIsActive(true);
+        String authorId = appConfigurationRepository.findByConfigKey("systempost_author").stream().map(AppConfiguration::getConfigValue).toList().get(0);
+        post.setAuthor(employeeRepository.getReferenceById(Integer.valueOf(authorId)));
+        post.setRoles(null);
+        post.setDepartments(null);
+        post.setTags(type.equals("birthday") ? "birthday" : "anniversary");
+
+        postRepository.save(post);
+    }
+
+    public void hrDelete(int postId, String remark){
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new NoSuchElementException("Post not found"));
+        if (post.getAuthor() != null) {
+            String emailBody = "Your post titled '" + post.getTitle() + "' has been removed by HR.\n Remark: " + remark;
+            mailSend.sendMail(List.of(post.getAuthor().getEmail()), null, "Post removed by HR", emailBody, null);
+        }
+        post.setIsActive(false);
+        postRepository.save(post);
     }
 }

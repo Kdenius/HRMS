@@ -92,3 +92,13 @@ export const updateComment = async (
 export const deleteComment = async (id: number): Promise<void> => {
     await Api.delete(`posts/comments/${id}`);
 };
+
+//delete comment by hr
+export const deleteCommentByHr = async({id, remark}:{id:number, remark:string}):Promise<void> => {
+    await Api.delete(`posts/comments/${id}/hr/${remark}`)
+}
+
+// delete post by hr
+export const deletePostByHr = async({id, remark}:{id:number, remark:string}):Promise<void> => {
+    await Api.delete(`posts/${id}/hr/${remark}`)
+}
