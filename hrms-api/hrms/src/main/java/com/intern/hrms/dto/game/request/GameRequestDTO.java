@@ -12,6 +12,7 @@ import java.time.LocalTime;
 @Getter
 @Setter
 public class GameRequestDTO {
+    private Integer gameId;
     @NotNull
     private String gameName;
     @Min(1) @Max(60)

@@ -1,5 +1,5 @@
 import { skipToken, useMutation, useQuery } from "@tanstack/react-query"
-import { addInterest, cancelBooking, createGame, createGameBooking, deleteGame, getAllEmployeeBookings, getEmployeeBookingsInCycle, getGameCycle, getGames, getInterestedEmployee, getInterestedGame, getTodayBookedForGame, removeInterest, updateOperationalHour } from "../api/GameApiCall"
+import { addInterest, cancelBooking, createGame, createGameBooking, deleteGame, getAllEmployeeBookings, getEmployeeBookingsInCycle, getGameCycle, getGames, getInterestedEmployee, getInterestedGame, getTodayBookedForGame, removeInterest, updateGame } from "../api/GameApiCall"
 import { use } from "react"
 
 export const useGetGames = () => {
@@ -21,9 +21,9 @@ export const useDeleteGame = () => {
     })
 }
 
-export const useUpdateOperationalHour = () => {
+export const useUpdateGame = () => {
     return useMutation({
-        mutationFn: updateOperationalHour
+        mutationFn: updateGame
     })
 }
 

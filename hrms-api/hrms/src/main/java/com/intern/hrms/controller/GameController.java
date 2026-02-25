@@ -2,7 +2,6 @@ package com.intern.hrms.controller;
 
 import com.intern.hrms.commonResponse.SuccessResponse;
 import com.intern.hrms.dto.game.request.GameRequestDTO;
-import com.intern.hrms.dto.game.request.OperationalHourRequestDTO;
 import com.intern.hrms.dto.game.response.InterestedEmployeeResponseDTO;
 import com.intern.hrms.entity.game.Game;
 import com.intern.hrms.entity.game.GameCycle;
@@ -43,12 +42,12 @@ public class GameController {
         );
     }
 
-    @PutMapping("/operation-hour")
+    @PutMapping()
     @PreAuthorize("hasRole('HR')")
-    public ResponseEntity<SuccessResponse<Objects>> updateOperationalHour(@RequestBody OperationalHourRequestDTO dto){
-        gameService.updateOperationalHour(dto);
+    public ResponseEntity<SuccessResponse<Objects>> updateGame(@RequestBody GameRequestDTO dto){
+        gameService.updateGame(dto);
         return ResponseEntity.ok(
-                new SuccessResponse<>("Operational hour updated successfully", null)
+                new SuccessResponse<>("Game updated successfully", null)
         );
     }
     @GetMapping("/cycle/{gameId}")

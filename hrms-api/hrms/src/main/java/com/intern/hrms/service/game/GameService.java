@@ -1,23 +1,16 @@
 package com.intern.hrms.service.game;
 
 import com.intern.hrms.dto.game.request.GameRequestDTO;
-import com.intern.hrms.dto.game.request.OperationalHourRequestDTO;
 import com.intern.hrms.dto.game.response.InterestedEmployeeResponseDTO;
 import com.intern.hrms.entity.game.*;
 import com.intern.hrms.enums.BookingStatusEnum;
 import com.intern.hrms.repository.game.*;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.data.domain.Limit;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -70,13 +63,12 @@ public class GameService {
         return gameRepository.findByIsDeleted(false);
     }
 
-    public Game updateOperationalHour(OperationalHourRequestDTO dto){
-        if(dto.getStart().isAfter(dto.getEnd())){
-            throw new IllegalArgumentException("Starting time must be before End time");
-        }
+    public Game updateGame(GameRequestDTO dto){
+//        if(dto.getStart().isAfter(dto.getEnd())){
+//            throw new IllegalArgumentException("Starting time must be before End time");
+//        }
         Game game = gameRepository.findById(dto.getGameId()).orElseThrow();
-        game.setStartTime(dto.getStart());
-        game.setEndTime(dto.getEnd());
+        modelMapper.map(dto, game);
         return gameRepository.save(game);
     }
 

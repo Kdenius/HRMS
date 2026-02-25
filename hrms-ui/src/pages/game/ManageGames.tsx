@@ -1,67 +1,66 @@
 import React, { useState } from 'react'
-import { useCreateGame, useDeleteGame, useGetGames, useUpdateOperationalHour } from '../../query/GameQuery'
+import { useCreateGame, useDeleteGame, useGetGames, useUpdateGame } from '../../query/GameQuery'
 import { Alert, Badge, Button, Card, Label, Modal, ModalBody, ModalFooter, ModalHeader, Spinner, TextInput } from 'flowbite-react';
 import { Clock, Edit, Plus, Trash } from 'lucide-react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
-import { type GameType, type GameCreateType, type OperationalHourUpdateType } from '../../types/Game';
+import { type GameType, type GameCreateType } from '../../types/Game';
 import toast from 'react-hot-toast';
+import ConfirmModal from '../achievement/component/ConfirmModal';
 
 function ManageGames() {
   const { data: allGame, refetch: refetchGame } = useGetGames();
   const createMutation = useCreateGame();
   const deleteMutation = useDeleteGame();
-  const updateHourMutation = useUpdateOperationalHour();
-  const [openCreate, setOpenCreate] = useState(false);
-  const [openEdit, setOpenEdit] = useState<GameType | null>(null);
+  const updateMutation = useUpdateGame();
+  const [openModal, setOpenModal] = useState(false);
   const [openDelete, setOpenDelete] = useState<GameType | null>(null);
-  const [formError, setFormError] = useState<string | null>(null)
-  const { register, handleSubmit, formState: { errors }, reset:resetCreate } = useForm<GameCreateType>();
+  const { register, handleSubmit, formState: { errors }, reset, watch } = useForm<GameCreateType>();
 
-  const onCreate: SubmitHandler<GameCreateType> = (data) => {
-    setFormError(null)
-    if (data.startingTime && data.endingTime && data.endingTime <= data.startingTime) {
-      setFormError("Ending time must be greater than starting time")
-      return
+  const onSubmit: SubmitHandler<GameCreateType> = (data) => {
+    if(data.gameId == undefined){
+      createMutation.mutate(data, {
+        onSuccess: (res) => toast.success(res.message),
+        onError: (err) => toast.error(err.message) 
+      })
+    }else{
+      updateMutation.mutate(data, {
+        onSuccess: (res) => toast.success(res.message),
+        onError: (err) => toast.error(err.message) 
+      })
     }
-    createMutation.mutate(data, {
-      onSuccess: (res) => {
-        toast.success(res.message)
-        refetchGame()
-        resetCreate()
-        setOpenCreate(false)
-      },
-      onError: (err) => {
-        toast.error(err.message)
-      }
+    refetchGame();
+    onClose();
+  }
+
+  const onClose = () => {
+    setOpenModal(false);
+    reset({
+      gameId:undefined,
+      gameName: undefined,
+      durationInMinute: undefined,
+      maxPlayer: undefined,
+      startingTime: undefined,
+      endingTime: undefined
     })
   }
 
-  const { register: registerEdit, handleSubmit: handleSubmitEdit, reset:resetEdit } = useForm<OperationalHourUpdateType>();
-  const onUpdateHour: SubmitHandler<OperationalHourUpdateType> = (data) => {
-    setFormError(null)
-    if (data.end <= data.start) {
-      setFormError("Ending time must be greater than starting time")
-      return
-    }
-    data.gameId = openEdit?.gameId!;
-    updateHourMutation.mutate(data, {
-      onSuccess: (res) => {
-        toast.success(res.message)
-        refetchGame()
-        setOpenEdit(null)
-      },
-      onError: (err) => {
-        toast.error(err.message)
-      }
+  const onEdit = (game:GameType) => {
+    reset({
+      gameId:game.gameId,
+      gameName: game.gameName,
+      durationInMinute: game.durationInMinute,
+      maxPlayer: game.maxPlayer,
+      startingTime: game.startTime,
+      endingTime: game.endTime
     })
-
+    setOpenModal(true)
   }
 
   const confirmDelete = () => {
     deleteMutation.mutate(openDelete!.gameId, {
       onSuccess: (res) => {
         toast.success(res.message)
-        refetchGame()
+        refetchGame();
         setOpenDelete(null)
       },
       onError: (err: any) => {
@@ -69,8 +68,6 @@ function ManageGames() {
       }
     })
   }
-
-
   return (
     <>
       <div className='grid grid-col-1 gap-4'>
@@ -87,12 +84,12 @@ function ManageGames() {
               <Badge color='info' icon={Clock}>
                 {game.startTime} - {game.endTime}
               </Badge>
-              <Badge color='warning' icon={Edit} onClick={() => setOpenEdit(game)}>Edit Operational Hour</Badge>
+              <Badge color='warning' icon={Edit} onClick={() => onEdit(game)}>Edit</Badge>
               <Badge color='failure' icon={Trash} onClick={() => setOpenDelete(game)}>Delete</Badge>
             </div>
           </Card>
         ))}
-        <Card className='border-dashed border-3' onClick={() => setOpenCreate(true)}>
+        <Card className='border-dashed border-3' onClick={() => setOpenModal(true)}>
           <div className='flex flex-col items-center text-gray-500'>
             <Plus className='size-8 mb-2' />
             <p>New Game</p>
@@ -100,9 +97,9 @@ function ManageGames() {
         </Card>
       </div>
 
-      <Modal show={openCreate}>
-        <ModalHeader>Add New Game</ModalHeader>
-        <form onSubmit={handleSubmit(onCreate)}>
+      <Modal show={openModal}>
+        <ModalHeader>{watch('gameId') == undefined ? 'Add New Game' : 'Edit Game' }</ModalHeader>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <ModalBody>
             <div>
               <Label>Game Name</Label>
@@ -123,12 +120,19 @@ function ManageGames() {
               </div>
               <div className='w-full'>
                 <Label>End Time</Label>
-                <TextInput type='time' {...register('endingTime', { required: true })} />
+                <TextInput type='time' {...register('endingTime', { 
+                  required: "Ending time is required", 
+                  validate: (value) => {
+                    if(new Date(value) < new Date(watch('startingTime'))){
+                      return "Endtime must be greater that starting Time"
+                    }
+                    return true;
+                  }
+                   })} />
               </div>
             </div>
-            {(formError || Object.keys(errors).length > 0) && (
+            {(Object.keys(errors).length > 0) && (
               <Alert color="failure" className='mt-4'> {
-                formError ||
                 errors.gameName?.message ||
                 errors.maxPlayer?.message ||
                 errors.durationInMinute?.message ||
@@ -137,43 +141,23 @@ function ManageGames() {
               }</Alert>)}
           </ModalBody>
           <ModalFooter>
-            <Button color={'blue'} disabled={createMutation.isPending} type='submit'>{createMutation.isPending && <Spinner size='sm' />}Add</Button>
-            <Button color={'gray'} onClick={() => {setOpenCreate(false); setFormError(null); resetCreate();}}>Cancle</Button>
+            <Button color={'blue'} disabled={createMutation.isPending || updateMutation.isPending} type='submit'>{(createMutation.isPending || updateMutation.isPending) && <Spinner size='sm' />}{watch('gameId') == undefined ? 'Create' : 'Update'}</Button>
+            <Button color={'gray'} onClick={onClose}>Cancle</Button>
           </ModalFooter>
         </form>
       </Modal>
 
-      <Modal show={!!openEdit}>
-        <ModalHeader>Edit Operational Hour</ModalHeader>
-        <form onSubmit={handleSubmitEdit(onUpdateHour)}>
-          <ModalBody>
-            <div className='flex gap-2'>
-            <div className='w-full'>
-              <Label>Start</Label>
-              <TextInput type="time" defaultValue={openEdit?.startTime} {...registerEdit("start")} />
-            </div>
-            <div className='w-full'>
-              <Label>End</Label>
-              <TextInput type="time" defaultValue={openEdit?.endTime} {...registerEdit("end")} />
-            </div>
-            </div>
-            {formError && <Alert color="failure" className='mt-4'>{formError}</Alert>}
-          </ModalBody>
-          <ModalFooter>
-            <Button color={'blue'} disabled={updateHourMutation.isPending} type='submit'>{updateHourMutation.isPending && <Spinner size='sm' />}Update</Button>
-            <Button color={'gray'} onClick={() => setOpenEdit(null)}>Cancle</Button>
-          </ModalFooter>
-        </form>
-      </Modal>
-
-      <Modal show={!!openDelete}>
-        <ModalHeader>Confirm Delete</ModalHeader>
-        <ModalBody>Are you sure you want to delete<b> {openDelete?.gameName}</b> ?</ModalBody>
-        <ModalFooter>
-          <Button color="red" onClick={confirmDelete}>Delete</Button>
-          <Button color="gray" onClick={() => setOpenDelete(null)}>Cancel</Button>
-        </ModalFooter>
-      </Modal>
+      <ConfirmModal
+                open={!!openDelete}
+                title="Delete Game"
+                message="Are you sure you want to delete this Game? This action cannot be undone."
+                confirmText="Yes, Delete"
+                cancelText="Cancel"
+                danger
+                loading={deleteMutation.isPending}
+                onConfirm={confirmDelete}
+                onClose={() => setOpenDelete(null)}
+            />
     </>
   )
 }

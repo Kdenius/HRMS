@@ -9,6 +9,7 @@ export interface GameType{
     endTime: string
 }
 export interface GameCreateType{
+    gameId?:number
     gameName:string
     durationInMinute: number
     maxPlayer: number

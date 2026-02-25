@@ -17,8 +17,8 @@ export const deleteGame = async (gameId: number): Promise<ApiResponseType<Object
     return response.data
 }
 
-export const updateOperationalHour = async (data: OperationalHourUpdateType): Promise<ApiResponseType<Object>> => {
-    const response = await Api.put(`/game/operation-hour`, data)
+export const updateGame = async (data: GameCreateType): Promise<ApiResponseType<Object>> => {
+    const response = await Api.put(`/game`, data)
     return response.data
 }
 
