@@ -5,6 +5,7 @@ import { useAddProvidedDocument, useGetProvidedDocument, useGetTravelPlan } from
 import { useGetDocumentByUrl, useGetDocumentTypes, useGetEmployeeDocument, useGetTravelDocumentRequest, useVerifyTravelDocument } from "../../query/DocumentQuery";
 import toast from "react-hot-toast";
 import { useForm, type SubmitHandler } from "react-hook-form";
+import SelectOption from "../../common/SelectOption";
 
 function DocumentVarification() {
     const [selectedPlanId, setSelectedPlanId] = useState<number>();
@@ -12,7 +13,7 @@ function DocumentVarification() {
     const [openModal, setOpenModal] = useState(false);
     const [url, setUrl] = useState<string>();
     const { data: travelPlans = [] } = useGetTravelPlan();
-    const { data: travelDocumentRequests = [], isLoading,refetch:refetchRequest } = useGetTravelDocumentRequest(selectedEmployee?.employeeId!);
+    const { data: travelDocumentRequests = [], isLoading, refetch: refetchRequest } = useGetTravelDocumentRequest(selectedEmployee?.employeeId!);
     const { data: document, refetch } = useGetDocumentByUrl(url!);
     const verifyMutation = useVerifyTravelDocument();
 
@@ -27,8 +28,8 @@ function DocumentVarification() {
     const [openAdd, setOpenAdd] = useState<number>();
     const { data: providedDocuments } = useGetProvidedDocument({ travelPlanId: selectedPlanId!, employeeId: selectedEmployee?.employeeId! })
     const addProvidedMutation = useAddProvidedDocument();
-    const {register, handleSubmit, reset} = useForm<{documentTypeId:number,file:FileList}>();
-    const {data:documents} = useGetDocumentTypes();
+    const { register, handleSubmit, reset } = useForm<{ documentTypeId: number, file: FileList }>();
+    const { data: documents } = useGetDocumentTypes();
 
     useEffect(() => {
         if (document != undefined)
@@ -40,9 +41,9 @@ function DocumentVarification() {
     }, [url])
     // console.log(error)
 
-    const onSubmit: SubmitHandler<{documentTypeId:number,file:FileList}> = (data) =>{
+    const onSubmit: SubmitHandler<{ documentTypeId: number, file: FileList }> = (data) => {
         const formData = new FormData();
-        formData.append('documentTypeId',data.documentTypeId.toString());
+        formData.append('documentTypeId', data.documentTypeId.toString());
         formData.append('employeeId', openAdd?.toString()!);
         formData.append('travelPlanId', selectedPlan?.travelPlanId.toString()!);
         formData.append('file', data.file[0]);
@@ -57,13 +58,15 @@ function DocumentVarification() {
     }
     return (
         <>
-            <Card className="mb-6">
-                <h5 className="text-lg font-semibold mb-3">Select Travel Plan</h5>
-                <Select value={selectedPlanId} onChange={e => setSelectedPlanId(Number(e.target.value))}>
-                    <option value="">Select Travel Plan</option>
-                    {travelPlans.map(plan => <option key={plan.travelPlanId} value={plan.travelPlanId}>{plan.title}</option>)}
-                </Select>
-            </Card>
+            <SelectOption
+                title='Travel Plan For Document Varification'
+                value={selectedPlanId!}
+                onChange={(value) => setSelectedPlanId(Number(value))}
+                options={travelPlans.map(
+                    (tp) => ({ label: tp.title, value: tp.travelPlanId })
+                )}
+                placeholder='Select Plan'
+            />
 
             {selectedPlan && (
                 <Card>
@@ -163,7 +166,7 @@ function DocumentVarification() {
                                             Uploaded At: {new Date(doc.date).toLocaleDateString()}
                                         </p>
                                     </div>
-                                    <Button size="xs" color="blue" onClick={()=>setUrl(doc.documentUrl)}>
+                                    <Button size="xs" color="blue" onClick={() => setUrl(doc.documentUrl)}>
                                         View
                                     </Button>
                                 </div>
@@ -174,28 +177,28 @@ function DocumentVarification() {
                 <ModalFooter><Button color="gray" onClick={() => setOpenModal(false)}>Close</Button></ModalFooter>
             </Modal>
 
-            <Modal show={openAdd!=undefined}>
+            <Modal show={openAdd != undefined}>
                 <ModalHeader>Provide Document</ModalHeader>
                 <form onSubmit={handleSubmit(onSubmit)}>
-                <ModalBody>
-                    <div>
-                        <Label>Document Type</Label>
-                        <Select {...register('documentTypeId')}>
-                            <option value=''>Select </option>
-                            {documents?.map(doc => (
-                                <option key={doc.documentTypeId} value={doc.documentTypeId}>{doc.documentTypeName}</option>
-                            ))}
-                        </Select>
+                    <ModalBody>
+                        <div>
+                            <Label>Document Type</Label>
+                            <Select {...register('documentTypeId')}>
+                                <option value=''>Select </option>
+                                {documents?.map(doc => (
+                                    <option key={doc.documentTypeId} value={doc.documentTypeId}>{doc.documentTypeName}</option>
+                                ))}
+                            </Select>
+                        </div>
+                        <div>
+                            <Label>Upload File</Label>
+                            <FileInput {...register('file')}></FileInput>
+                        </div>
+                    </ModalBody>
+                    <div className="flex ml-6 mb-4 gap-4">
+                        <Button type="submit">Add</Button>
+                        <Button onClick={() => setOpenAdd(undefined)}>Cancel</Button>
                     </div>
-                    <div>
-                        <Label>Upload File</Label>
-                        <FileInput {...register('file')}></FileInput>
-                    </div>
-                </ModalBody>
-                <div className="flex ml-6 mb-4 gap-4">
-                    <Button type="submit">Add</Button>
-                    <Button onClick={()=>setOpenAdd(undefined)}>Cancel</Button>
-                </div>
                 </form>
             </Modal>
         </>

@@ -8,6 +8,7 @@ import { Calendar, Clock, Recycle } from 'lucide-react';
 import type { GameBookingSubmitType, InterestedEmployeeType } from '../../types/Game';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import InputField from '../../common/InputField';
+import SelectOption from '../../common/SelectOption';
 
 function GameBooking() {
     const user = useSelector((state: RootStateType) => state.user)
@@ -125,13 +126,15 @@ function GameBooking() {
     }
     return (
         <>
-            <Card className="mb-6">
-                <h5 className="text-lg font-semibold">Your Intrested Game</h5>
-                <Select value={selectedGameId} onChange={e => setSelectedGameId(Number(e.target.value))}>
-                    <option value="">Select game</option>
-                    {allInterestedGames?.map(game => <option key={game.gameId} value={game.gameId}>{game.gameName}</option>)}
-                </Select>
-            </Card>
+            <SelectOption
+                title='Games of your Interest'
+                value={selectedGameId!}
+                onChange={(value) => setSelectedGameId(Number(value))}
+                options={allInterestedGames?.map(
+                    (g) => ({ label: g.gameName, value: g.gameId })
+                )!}
+                placeholder='Select Game'
+            />
 
             {selectedGameId && (
                 <>

@@ -1,7 +1,8 @@
-import React, {useState } from "react";
+import React, { useState } from "react";
 import { useGetGames, useGetTodayBookedForGame } from "../../query/GameQuery";
 import { Calendar, Clock, Users } from "lucide-react";
 import { Badge, Card, Select, Spinner } from "flowbite-react";
+import SelectOption from "../../common/SelectOption";
 function TodayBooking() {
     const [selectedGameId, setSelectedGameId] = useState<number>();
     const { data: games } = useGetGames();
@@ -9,15 +10,16 @@ function TodayBooking() {
     const selectedGame = games?.find(g => g.gameId === selectedGameId);
     return (
         <div className="flex flex-col gap-6">
-            <Card>
-                <h5 className="text-lg font-semibold">Select Game</h5>
-                <Select value={selectedGameId} onChange={(e) => setSelectedGameId(Number(e.target.value))}>
-                    <option value="">Select game</option>
-                    {games?.map(game => (
-                        <option key={game.gameId} value={game.gameId}>{game.gameName}</option>
-                    ))}
-                </Select>
-            </Card>
+            <SelectOption
+                title='Games in Zone'
+                value={selectedGameId!}
+                onChange={(value) => setSelectedGameId(Number(value))}
+                options={games?.map(
+                    (g) => ({ label: g.gameName, value: g.gameId })
+                )!}
+                placeholder='Select Game'
+            />
+            
             {selectedGameId && selectedGame && (
                 <Card>
                     <div className="flex gap-3 items-center">

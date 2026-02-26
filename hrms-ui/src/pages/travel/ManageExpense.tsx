@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { Eye } from 'lucide-react';
 import { type TravelExpenseResponseType } from '../../types/TravelPlan';
 import { useGetDocumentByUrl } from '../../query/DocumentQuery';
+import SelectOption from '../../common/SelectOption';
 
 function ManageExpense() {
   const [selectedPlanId, setSelectedPlanId] = useState<number>();
@@ -34,13 +35,15 @@ function ManageExpense() {
 
   return (
     <>
-      <Card className="mb-6">
-        <h5 className="text-lg font-semibold mb-3">Select Travel Plan</h5>
-        <Select value={selectedPlanId} onChange={e => setSelectedPlanId(Number(e.target.value))}>
-          <option value="">Select Travel Plan</option>
-          {travelPlans.map(plan => <option key={plan.travelPlanId} value={plan.travelPlanId}>{plan.title}</option>)}
-        </Select>
-      </Card>
+      <SelectOption
+        title='TravelPlan For Expense'
+        value={selectedPlanId!}
+        onChange={(value) => setSelectedPlanId(Number(value))}
+        options={travelPlans.map(
+          (tp) => ({ label: tp.title, value: tp.travelPlanId })
+        )}
+        placeholder='Select Plan'
+      />
 
       {selectedPlanId &&
         <Card>
