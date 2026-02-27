@@ -49,19 +49,21 @@ public class TravelExpenseService {
         return travelExpenseTypeRepository.findAll();
     }
 
-    public EmployeeTravelExpense draftEmployeeExpense(EmployeeTravelExpenseRequestDTO dto)throws IOException {
+    public EmployeeTravelExpense draftEmployeeExpense(EmployeeTravelExpenseRequestDTO dto) {
         EmployeeTravelExpense expense =  dto.getEmployeeTravelExpenseId() != null
                 ? employeeTravelExpenseRepository.findById(dto.getEmployeeTravelExpenseId()).orElseThrow()
                 : new EmployeeTravelExpense();
-//        TravelEmployee travelEmployee = travelEmployeeRepository.findById(dto.getEmployeeTravelId()).orElseThrow(
-//                () -> new RuntimeException("Invalid Travel Employee id passed : id"+dto.getEmployeeTravelId())
-//        );
         Employee employee = employeeRepository.getReferenceById(dto.getEmployeeId());
         TravelPlan travelPlan = travelPlanRepository.getReferenceById(dto.getTravelPlanId());
         TravelEmployee travelEmployee = travelEmployeeRepository.findByEmployeeAndTravelPlan(employee, travelPlan);
         TravelExpenseType expenseType = travelExpenseTypeRepository.findById(dto.getTravelExpenseTypeId()).orElseThrow();
-        modelMapper.map(dto, expense);
+
+        expense.setExpenseDate(dto.getExpenseDate());
+        expense.setExpenseDetail(dto.getExpenseDetail());
+        expense.setAmount(dto.getAmount());
+        expense.setTravelExpenseType(expenseType);
         expense.setTravelEmployee(travelEmployee);
+
         if(expense.getExpenseDate().isBefore(travelEmployee.getTravelPlan().getStartTime().toLocalDate())
         || expense.getExpenseDate().isAfter(travelEmployee.getTravelPlan().getEndTime().toLocalDate())){
             throw new RuntimeException("Invalid Expense Date must be in between travel time");
@@ -70,39 +72,43 @@ public class TravelExpenseService {
             throw new RuntimeException("Spent Amount Must be <"+expenseType.getMaxAmount()+" for this expense type");
         }
         if(dto.getFile() != null){
-            String url= fileStorage.uploadExpenseBill(expense.getEmployeeTravelExpenseId()+"_"+expenseType.getTravelExpenseTypeName(),dto.getFile());
+            expense = employeeTravelExpenseRepository.save(expense);
+            String url = fileStorage.uploadFile("expense-bills/",expense.getEmployeeTravelExpenseId()+"_"+expenseType.getTravelExpenseTypeName(), dto.getFile());
             expense.setProofUrl(url);
         }
-//        expense.setEmployeeTravelExpenseId(dto.getEmployeeTravelExpenseId());
-        expense.setStatus(TravelExpenseStatusEnum.Draft);
 
+        expense.setStatus(TravelExpenseStatusEnum.Draft);
         return employeeTravelExpenseRepository.save(expense);
-//        employeeTravelExpenseRepository.
-//        return expense;
     }
 
     public void submitEmployeeExpense(int employeeTravelExpenseId){
         EmployeeTravelExpense expense = employeeTravelExpenseRepository.findById(employeeTravelExpenseId).orElseThrow(
-                ()-> new RuntimeException("Invalid Submition not found expense entry")
+                ()-> new RuntimeException("Invalid Submission not found expense entry")
         );
         if(expense.getProofUrl() == null)
             throw new RuntimeException("Proof is mandatory for submitting expense");
+        boolean exist = employeeTravelExpenseRepository.existsByExpenseDateAndStatusInAndTravelExpenseTypeAndTravelEmployee(expense.getExpenseDate(), List.of(TravelExpenseStatusEnum.Submitted, TravelExpenseStatusEnum.Approved), expense.getTravelExpenseType(), expense.getTravelEmployee());
+        if(exist){
+            throw new RuntimeException("Expense for this date & type already added, only one entry per day allowed");
+        }
+
         expense.setStatus(TravelExpenseStatusEnum.Submitted);
         expense.setCreatedAt(LocalDate.now());
         employeeTravelExpenseRepository.save(expense);
     }
 
-    public void verifyEmployeeExpense(int employeeTravelExpenseId, TravelExpenseStatusEnum status, String username){
+    public void verifyEmployeeExpense(int employeeTravelExpenseId, TravelExpenseStatusEnum status, String remark, String username){
         EmployeeTravelExpense expense = employeeTravelExpenseRepository.findById(employeeTravelExpenseId).orElseThrow(
                 ()-> new RuntimeException("Invalid id not found expense entry")
         );
         if(expense.getStatus() != TravelExpenseStatusEnum.Submitted)
-            throw new RuntimeException("Only subbmitted expenses are allow to verify");
+            throw new RuntimeException("Only Submitted expenses are allow to verify");
+
         Employee approver = employeeRepository.getReferenceByEmail(username);
-//        expense.setRemark("Default Remark for expense");
         expense.setStatus(status);
         expense.setUpdatedAt(LocalDate.now());
         expense.setApprover(approver);
+        expense.setRemark(remark);
         employeeTravelExpenseRepository.save(expense);
         notificationService.notifyUser(expense.getTravelEmployee().getEmployee().getEmployeeId(),
                 NotificationTypeEnum.TravelExpense,
@@ -118,5 +124,13 @@ public class TravelExpenseService {
     public List<EmployeeTravelExpenseResponseDTO> getExpenseByTravelPlan(int travelPlanId){
         List<EmployeeTravelExpense> expenses =employeeTravelExpenseRepository.findAllByTravelEmployee_TravelPlan_TravelPlanIdAndStatusNot(travelPlanId,TravelExpenseStatusEnum.Draft);
         return modelMapper.map(expenses, new TypeToken<List<EmployeeTravelExpenseResponseDTO>>(){}.getType());
+    }
+
+    public void deleteDraft(int expenseId){
+        EmployeeTravelExpense expense = employeeTravelExpenseRepository.findById(expenseId).orElseThrow();
+        if(expense.getStatus() != TravelExpenseStatusEnum.Draft){
+            throw new RuntimeException("Delete allowed on draft entry only.");
+        }
+        employeeTravelExpenseRepository.deleteById(expenseId);
     }
 }

@@ -18,7 +18,7 @@ function ManageTravel() {
     const [selectedEmployees, setSelectedEmployees] = useState<TravelEmployeeType[]>();
     const [selectedDocuments, setSelectedDocuments] = useState<DocumentType[]>();
     const { data: allEmployees, isLoading: emploading } = useGetEmployees();
-    const { data: allDocuments } = useGetDocumentTypes();
+    const { data: allDocuments } = useGetDocumentTypes(false);
     const { mutate: mutate2, isPending: isPending2, isError: isError2, error: error2 } = useManageTravelEmployee();
     const { mutate: mutate3, isPending: isPending3, isError: isError3, error: error3 } = useManageTravelDocument();
     const { mutate: mutate4, isPending: isPending4, isError: isError4, error: error4 } = useUpdateTravelPlan();
@@ -80,7 +80,7 @@ function ManageTravel() {
                     refetchTravelPlan()
                 },
                 onError: (error) => {
-                    console.log(error)
+                    toast.error(error.message)
                 }
             })
     }
@@ -107,15 +107,17 @@ function ManageTravel() {
                                 <h5 className='text-xl font-semibold text-gray-900'>{plan.title}</h5>
                             </div>
                             <p className='text-gray-700 text-sm'>{plan.description}</p>
-                            <div className='text-sm text-gray-600 space-y-1 mb-4'>
+                            <div className='text-sm text-gray-600 space-y-1'>
                                 <p>Start : {new Date(plan.startTime).toLocaleDateString('en-GB', { hour: 'numeric', minute: '2-digit', })}</p>
                                 <p>End : {new Date(plan.endTime).toLocaleDateString('en-GB', { hour: 'numeric', minute: '2-digit', })}</p>
                                 <p>Created By : {plan.createdBy.email}</p>
                             </div>
                             <div className='flex gap-3 mt-auto'>
+                                {new Date(plan.startTime) > new Date() &&(<>
                                 <Button size='xs' color='blue' onClick={() => openSelection(plan)}>Employee Selection</Button>
                                 <Button size='xs' color='blue' onClick={() => openDocument(plan)}>Document Required</Button>
                                 <Button size='xs' color='blue' onClick={() => openEdit(plan)}>Edit</Button>
+                                </>)}
                             </div>
                         </Card>
                     ))

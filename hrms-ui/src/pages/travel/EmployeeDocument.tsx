@@ -1,8 +1,8 @@
 import { Button, Card, FileInput, Label, Modal, ModalBody, ModalFooter, ModalHeader, Select, Spinner } from 'flowbite-react';
 import { Eye, Pencil, Plus, Upload } from 'lucide-react';
-import React, { useMemo, useState } from 'react'
+import React, {useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form';
-import { useAddDocument, useGetDocumentTypes, useGetEmployeeDocument } from '../../query/DocumentQuery';
+import { useAddDocument, useGetDocumentByUrl, useGetDocumentTypes } from '../../query/DocumentQuery';
 import type { DocumentSubmitType, EmployeeDocumentType } from '../../types/TravelPlan';
 import { useGetEmployeeDocuments, useUpdateEmployeeDocument } from '../../query/EmployeeQuery';
 import { useSelector } from 'react-redux';
@@ -10,24 +10,16 @@ import type { RootStateType } from '../../redux-store/store';
 import toast from 'react-hot-toast';
 
 function EmployeeDocument() {
-    const { data: alldocumentTypes } = useGetDocumentTypes();
+    const { data: alldocumentTypes } = useGetDocumentTypes(false);
     const user = useSelector((state: RootStateType) => state.user);
     const { data: allEmployeeDocuments, refetch } = useGetEmployeeDocuments(user.userId);
-    const { mutate, isPending, isError, error } = useAddDocument();
-    const [documentId, setDocumentId] = useState<number>();
-    const { data: employeeDocument, isLoading, refetch:refetchDoc } = useGetEmployeeDocument(documentId!);
-    const { mutate: mutate2, isPending: isPending2, isError: isError2, error: error2 } = useUpdateEmployeeDocument();
-
+    const addMutation = useAddDocument();
+    const docMutation = useGetDocumentByUrl();
+    const updateMutation = useUpdateEmployeeDocument();
     const [openModal, setOpenModal] = useState<string>();
     const [selectedDocument, setSelectedDocument] = useState<EmployeeDocumentType | null>(null);
-
     const { register, handleSubmit, reset } = useForm<DocumentSubmitType>();
 
-    const openViewModal = (doc: EmployeeDocumentType) => {
-        setDocumentId(doc.employeeDocumentId);
-        setSelectedDocument(doc);
-        setOpenModal("view");
-    };
 
     const openEditModal = (doc: EmployeeDocumentType) => {
         setSelectedDocument(doc);
@@ -51,16 +43,14 @@ function EmployeeDocument() {
         const formData = new FormData();
         formData.append('file', data.fileList[0]);
         if (openModal == 'edit') {
-            mutate2({
+            updateMutation.mutate({
                 documentId: selectedDocument?.employeeDocumentId!,
                 form: formData
             }, {
                 onSuccess: (data) => {
-                    // console.log(data);
                     toast.success(data.message);
-                    // refetch();
-                    refetchDoc();
                     setOpenModal(undefined);
+                    refetch();
                     reset();
                 },
                 onError: (err) => toast.error(err.message)
@@ -69,25 +59,20 @@ function EmployeeDocument() {
         }
         formData.append('documentTypeId', data.documentTypeId.toString());
         formData.append('employeeId', user.userId.toString());
-        mutate(formData, {
+        addMutation.mutate(formData, {
             onSuccess: (data) => {
-                // console.log(data);
                 toast.success(data.message);
                 refetch();
                 setOpenModal(undefined);
-                reset();
             },
             onError: (error) => {
                 toast.error(error.message)
             }
         })
-        setOpenModal(undefined);
-        reset();
     };
 
     const availableDocumentTypes = useMemo(() => {
         const uploadedIds = allEmployeeDocuments?.map((d) => d.documentTypeId);
-        // console.log(uploadedIds)
         return alldocumentTypes?.filter((d) => !uploadedIds?.includes(d.documentTypeId));
     }, [allEmployeeDocuments]);
 
@@ -104,7 +89,14 @@ function EmployeeDocument() {
                                 {doc.documentTypeName}
                             </h5>
                             <div className='flex ml-auto gap-3'>
-                                <Eye onClick={() => openViewModal(doc)} size={20} />
+                                <Eye onClick={() => docMutation.mutate(doc.documentUrl,
+                                    {
+                                        onSuccess: (data) => {
+                                            const fileURL = URL.createObjectURL(data);
+                                            window.open(fileURL, "_blank");
+                                        }
+                                    }
+                                )} size={20} />
                                 <Pencil onClick={() => openEditModal(doc)} size={20} />
                             </div>
                         </div>
@@ -125,28 +117,6 @@ function EmployeeDocument() {
                     </div>
                 </Card>
             </div>
-
-            <Modal show={openModal === "view"} size='7xl' onClose={() => setOpenModal(undefined)}>
-                <ModalHeader>
-                    View Document - {selectedDocument?.documentTypeName}
-                </ModalHeader>
-                <ModalBody>
-                    <div className="flex h-120 w-full ">
-                        {isLoading ? <Spinner /> :
-                            <iframe
-                                src={employeeDocument && URL.createObjectURL(employeeDocument!)}
-                                title="Document Preview"
-                                className="w-full h-full rounded-md object-contain"
-                            />
-                        }
-                    </div>
-                </ModalBody>
-                <ModalFooter>
-                    <Button color="gray" onClick={() => setOpenModal(undefined)}>
-                        Close
-                    </Button>
-                </ModalFooter>
-            </Modal>
 
             <Modal show={openModal === "add" || openModal === "edit"} onClose={() => setOpenModal(undefined)}>
                 <ModalHeader>

@@ -17,6 +17,7 @@ import java.time.LocalDate;
 @Setter
 public class EmployeeTravelDocumentResponseDTO {
     private int employeeTravelDocumentId;
+    private String remark;
     private LocalDate actionDate;
     private String documentStatus;
     private Integer travelEmployeeEmployeeId;

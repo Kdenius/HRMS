@@ -18,8 +18,6 @@ public class TravelExpenseType {
     private String travelExpenseTypeName;
     private int maxAmount;
 
-    // max amount time
-
     public TravelExpenseType(String travelExpenseTypeName, int maxAmount) {
         this.travelExpenseTypeName = travelExpenseTypeName;
         this.maxAmount = maxAmount;

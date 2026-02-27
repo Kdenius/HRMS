@@ -23,6 +23,7 @@ public class EmployeeTravelDocument {
     private int employeeTravelDocumentId;
     private LocalDate actionDate;
     private DocumentStatusEnum documentStatus;
+    private String remark;
 
     @ManyToOne
     @JoinColumn(name = "fk_travel_employee_id", nullable = false)

@@ -26,6 +26,7 @@ public class TravelPlan {
     @Column(nullable = false)
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private Boolean isActive=true;
 
     @ManyToOne
     @JoinColumn(name = "fk_created_by_employee_id", nullable = false) // hr id who has created plan

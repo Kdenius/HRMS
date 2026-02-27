@@ -16,95 +16,46 @@ public class FileStorage {
     @Value("${storage.path}")
     private String path;
 
-    public String uploadEmployeeDocument(String documentType, int employeeId, MultipartFile file) throws IOException {
-        File directory = new File(path+"documents/"+employeeId+"/");
-//        boolean result=false;
-        if(!directory.exists()){
-//            result = directory.mkdirs();
-            if(!directory.mkdirs()){
-                throw new RuntimeException("Issue in creating Directories in upload employee document.");
+    public String uploadFile(String folderPath, String fileName, MultipartFile file){
+        try{
+            File directory = new File(path+folderPath);
+            if(!directory.exists()){
+                if(!directory.mkdirs()){
+                    throw new RuntimeException("Issue in creating Directories in upload employee document.");
+                }
             }
+            String url = directory.getPath()+"/"+fileName+getFileExtension(file.getOriginalFilename());
+            file.transferTo(new File(System.getProperty("user.dir")+"/"+url));
+            return url;
+        }catch (IOException exception){
+            System.out.println("Error : Issue in Uploading File : "+exception.getMessage());
+            throw new RuntimeException(exception.getMessage());
         }
-//        System.out.println(result);
-        String url =path+"documents/"+employeeId+"/"+documentType+getFileExtension(file.getOriginalFilename());
-        file.transferTo(new File(System.getProperty("user.dir")+"/"+url));
-        return url;
     }
 
-    public String uploadProvidedDocument(String documentType, int travelEmployeeId, MultipartFile file) throws IOException{
-        File directory = new File(path+"provided-documents/");
-        if(!directory.exists()){
-            if(!directory.mkdirs()){
-                throw new RuntimeException("Issue in creating Directories in upload employee document.");
-            }
+    public String updateFile(String url, MultipartFile file){
+        try{
+            String basePath = url.substring(0, url.lastIndexOf("."));
+            String newPath = basePath + getFileExtension(file.getOriginalFilename());
+            File location = new File(System.getProperty("user.dir") + "/" + newPath);
+            file.transferTo(location);
+            return newPath;
+        }catch (IOException exception){
+            System.out.println("Error : Issue in Updating File : "+exception.getMessage());
+            throw new RuntimeException(exception.getMessage());
         }
-        String url = path+"provided-documents/"+travelEmployeeId+"_"+documentType+getFileExtension(file.getOriginalFilename());
-        file.transferTo(new File(System.getProperty("user.dir")+"/"+url));
-        return url;
-    }
-
-    public String uploadExpenseBill(String name,MultipartFile file) throws IOException{
-        File directory = new File(path+"expense-bills/");
-        if(!directory.exists()){
-            if(!directory.mkdirs()){
-                throw new RuntimeException("Issue in creating Directories in upload employee document.");
-            }
-        }
-        String url = path+"expense-bills/"+name+getFileExtension(file.getOriginalFilename());
-        file.transferTo(new File(System.getProperty("user.dir")+"/"+url));
-        return url;
-    }
-
-//    public String uploadJobDescription(String name, MultipartFile file) throws IOException{
-//        File directory = new File(path+"job-description/");
-//        if(!directory.exists()){
-//            if(!directory.mkdirs()){
-//                throw new RuntimeException("Issue in creating Directories in upload employee document.");
-//            }
-//        }
-//        String url = path+"job-description/"+name+getFileExtension(file.getOriginalFilename());
-//        file.transferTo(new File(System.getProperty("user.dir")+"/"+url));
-//        return url;
-//    }
-    public String uploadFile(String folderPath, String fileName, MultipartFile file) throws IOException{
-        File directory = new File(path+folderPath);
-        if(!directory.exists()){
-            if(!directory.mkdirs()){
-                throw new RuntimeException("Issue in creating Directories in upload employee document.");
-            }
-        }
-        System.out.println(file.getSize());
-//        String url = directory.getPath();
-//        System.out.println(url);
-//        String url2 = directory.getAbsolutePath();
-//        System.out.println(url2);
-//        System.out.println(System.getProperty("user.dir"));
-        String url = directory.getPath()+"/"+fileName+getFileExtension(file.getOriginalFilename());
-        file.transferTo(new File(System.getProperty("user.dir")+"/"+url));
-        return url;
-//        return "testing";
-    }
-
-    public String UpdateFile(String url, MultipartFile file)throws IOException{
-        File location = new File(System.getProperty("user.dir")+"/"+url);
-        file.transferTo(location);
-        return location.getCanonicalPath();
     }
 
     public String getFileExtension(String name){
-
         return name.substring(name.indexOf("."));
-//        return "jpg";
     }
 
     public Resource getDocument(String url){
         Path documentpath = Paths.get(System.getProperty("user.dir")+"/"+url);
-        System.out.println(url+"//////ato ready chene");
         try {
             Resource document = new UrlResource(documentpath.toUri());
             if(!document.exists())
                 throw new RuntimeException("document not exist in folder");
-            System.out.println("Atleas it return");
             return document;
         }catch(Exception e){
             throw new RuntimeException(e.getMessage());

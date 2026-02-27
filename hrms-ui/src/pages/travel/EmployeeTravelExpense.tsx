@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useGetTravelPlanForExpense } from "../../query/TravelPlanQuery";
 import { useSelector } from "react-redux";
 import type { RootStateType } from "../../redux-store/store";
-import { useCreateTravelExpense, useGetExpenseByEmployee, useGetExpenseType, useSubmitTravelExpense } from "../../query/ExpenseQuery";
+import { useCreateTravelExpense, useDeleteTravelExpense, useGetExpenseByEmployee, useGetExpenseType, useSubmitTravelExpense } from "../../query/ExpenseQuery";
 import type { TravelExpenseResponseType, TravelExpenseSubmitType } from "../../types/TravelPlan";
 import { useForm, type SubmitErrorHandler, type SubmitHandler } from "react-hook-form";
 import toast from "react-hot-toast";
@@ -12,19 +12,14 @@ import { Alert, Badge, Button, Card, Label, Modal, ModalBody, ModalFooter, Modal
 
 function EmployeeTravelExpense() {
   const [openModal, setOpenModal] = useState<string>();
-  const [selectedExpense, setSelectedExpense] = useState<TravelExpenseResponseType>();
   const user = useSelector((state: RootStateType) => state.user);
   const { data: openTravel } = useGetTravelPlanForExpense(user.userId!);
   const { data: expenseType } = useGetExpenseType();
   const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<TravelExpenseSubmitType>();
   const createExpenseMutation = useCreateTravelExpense();
   const submitExpenseMutation = useSubmitTravelExpense();
-  const { data: document, isLoading, refetch } = useGetDocumentByUrl(selectedExpense?.proofUrl!);
-
-  useEffect(() => {
-    if (document != undefined)
-      window.open(URL.createObjectURL(document!), '_blank')
-  }, [document])
+  const docMutation = useGetDocumentByUrl();
+  const deleteMutation = useDeleteTravelExpense();
   const { data: expenses, refetch: expensesRefetch } = useGetExpenseByEmployee(user.userId);
 
   const getStatusColor = (status: string) => {
@@ -120,7 +115,7 @@ function EmployeeTravelExpense() {
             <TableHeadCell>Type</TableHeadCell>
             <TableHeadCell>Amount</TableHeadCell>
             <TableHeadCell>Status</TableHeadCell>
-            {/* <TableHeadCell>Remark</TableHeadCell> */}
+            <TableHeadCell>Remark</TableHeadCell>
             <TableHeadCell>Action</TableHeadCell>
           </TableHead>
 
@@ -145,9 +140,9 @@ function EmployeeTravelExpense() {
                 <TableCell>
                   <Badge color={getStatusColor(expense.status)}>{expense.status}</Badge>
                 </TableCell>
-                {/* <TableCell>
+                <TableCell>
                   {expense.remark ?? "—"}
-                </TableCell> */}
+                </TableCell>
                 <TableCell className="flex justify-center">
                   <div className="flex gap-2">
                     {expense.status === "Draft" && (
@@ -161,18 +156,27 @@ function EmployeeTravelExpense() {
 
                         <Button size="xs" onClick={() => {
                           submitExpenseMutation.mutate(expense.employeeTravelExpenseId, {
-                            onSuccess: (data) => { toast.success(data.message); expensesRefetch() }
+                            onSuccess: (data) => { toast.success(data.message); expensesRefetch() },
+                            onError: (err) => toast.error(err.message)
                           })
-                        }}>{submitExpenseMutation.isPending && <Spinner size="sm" />}Submit</Button>
+                        }}>
+                          {submitExpenseMutation.isPending && <Spinner size="sm" />}Submit</Button>
+
+                          <Button size="xs" color='red' onClick={()=>deleteMutation.mutate(expense.employeeTravelExpenseId,{
+                            onSuccess: (data) => {toast.success(data.message); expensesRefetch()}
+                          })}
+                          >Delete</Button>
                       </>
                     )}
                     {
                       expense.proofUrl &&
                       <Button size="xs" color="gray"
-                        onClick={() => {
-                          setSelectedExpense(expense);
-                          refetch()
-                        }}>
+                        onClick={() => docMutation.mutate(expense.proofUrl, {
+                          onSuccess: (data) => {
+                            const fileURL = URL.createObjectURL(data);
+                            window.open(fileURL, '_blank')
+                          }
+                        })}>
                         <Eye size={14} />
                       </Button>
                     }

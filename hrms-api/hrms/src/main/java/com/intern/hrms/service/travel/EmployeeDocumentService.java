@@ -9,6 +9,7 @@ import com.intern.hrms.repository.general.DocumentTypeRepository;
 import com.intern.hrms.repository.travel.EmployeeDocumentRepository;
 import com.intern.hrms.repository.general.EmployeeRepository;
 import com.intern.hrms.utility.FileStorage;
+import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.core.io.Resource;
@@ -20,6 +21,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class EmployeeDocumentService {
 
     private final EmployeeRepository employeeRepository;
@@ -28,44 +30,31 @@ public class EmployeeDocumentService {
     private final FileStorage fileStorage;
     private final ModelMapper modelMapper;
 
-    public EmployeeDocumentService(EmployeeRepository employeeRepository, DocumentTypeRepository documentTypeRepository, EmployeeDocumentRepository employeeDocumentRepository, FileStorage fileStorage, ModelMapper modelMapper) {
-        this.employeeRepository = employeeRepository;
-        this.documentTypeRepository = documentTypeRepository;
-        this.employeeDocumentRepository = employeeDocumentRepository;
-        this.fileStorage = fileStorage;
-        this.modelMapper = modelMapper;
-    }
-
-    public EmployeeDocument addEmployeeDocument(EmployeeDocumentRequestDTO employeeDocumentRequestDTO) throws IOException {
-        Employee employee = employeeRepository.findById(employeeDocumentRequestDTO.getEmployeeId()).orElseThrow(
-                ()-> new RuntimeException("Employee not found with id :"+employeeDocumentRequestDTO.getEmployeeId())
+    public EmployeeDocument addEmployeeDocument(EmployeeDocumentRequestDTO dto){
+        Employee employee = employeeRepository.findById(dto.getEmployeeId()).orElseThrow(
+                ()-> new RuntimeException("Employee not found with id :"+dto.getEmployeeId())
         );
-        DocumentType documentType = documentTypeRepository.findById(employeeDocumentRequestDTO.getDocumentTypeId()).orElseThrow(
-                ()-> new RuntimeException("No such document type found with id: "+employeeDocumentRequestDTO.getDocumentTypeId())
+        DocumentType documentType = documentTypeRepository.findById(dto.getDocumentTypeId()).orElseThrow(
+                ()-> new RuntimeException("No such document type found with id: "+dto.getDocumentTypeId())
         );
-
-        String documentUrl = fileStorage.uploadEmployeeDocument(documentType.getDocumentTypeName(), employee.getEmployeeId(), employeeDocumentRequestDTO.getFile());
+        String documentUrl = fileStorage.uploadFile("documents/"+employee.getEmployeeId()+"/", documentType.getDocumentTypeName(), dto.getFile());
         EmployeeDocument document = new EmployeeDocument(documentUrl, LocalDate.now(), documentType, employee);
         return employeeDocumentRepository.save(document);
     }
 
-    public Resource getEmployeeDocument(int employeeDocumentId){
-        EmployeeDocument employeeDocument= employeeDocumentRepository.findById(employeeDocumentId).orElseThrow(
-                ()-> new RuntimeException("No Record found for this document Id : "+employeeDocumentId)
-        );
-        return fileStorage.getDocument(employeeDocument.getDocumentUrl());
-    }
-
     public Resource getDocumentByUrl(String url){
-        System.out.println("coming heere");
+        if(url == null){
+            throw new RuntimeException("Requesting resource with null url");
+        }
         return fileStorage.getDocument(url);
     }
 
-    public void updateEmployeeDocument(int employeeDocumentId, MultipartFile file) throws IOException{
+    public void updateEmployeeDocument(int employeeDocumentId, MultipartFile file){
         EmployeeDocument employeeDocument= employeeDocumentRepository.findById(employeeDocumentId).orElseThrow(
                 ()-> new RuntimeException("No Record found for this document Id : "+employeeDocumentId)
         );
-        fileStorage.UpdateFile(employeeDocument.getDocumentUrl(), file);
+        String newUrl = fileStorage.updateFile(employeeDocument.getDocumentUrl(), file);
+        employeeDocument.setDocumentUrl(newUrl);
         employeeDocument.setUploadedAt(LocalDate.now());
         employeeDocumentRepository.save(employeeDocument);
     }

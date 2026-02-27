@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,6 +38,7 @@ public class DocumentController {
     }
 
     @PostMapping("/provided")
+    @PreAuthorize("hasRole('HR')")
     public ResponseEntity<SuccessResponse<Object>> addProvidedTravelDocument(ProvidedTravelDocumentRequestDTO providedTravelDocumentRequestDTO, Principal principal) throws IOException{
         travelDocumentService.submitProvidedDocument(providedTravelDocumentRequestDTO, principal.getName());
         return ResponseEntity.ok(
@@ -69,12 +71,16 @@ public class DocumentController {
     }
 
     @PatchMapping("verify/{employeeTravelDocumentId}/{status}")
-    public ResponseEntity<SuccessResponse<Object>> verifyDocumentRequest(@PathVariable int employeeTravelDocumentId, @PathVariable DocumentStatusEnum status, Principal principal){
-        travelDocumentService.verifyDocumentRequest(principal.getName(), employeeTravelDocumentId,status);
+    public ResponseEntity<SuccessResponse<Object>> verifyDocumentRequest(@PathVariable int employeeTravelDocumentId,
+                                                                         @PathVariable DocumentStatusEnum status,
+                                                                         @RequestBody(required = false) String remark,
+                                                                         Principal principal){
+        travelDocumentService.verifyDocumentRequest(principal.getName(), employeeTravelDocumentId, status, remark);
         return ResponseEntity.ok(
                 new SuccessResponse<>("Travel Document verified Successfully by " + principal.getName(), null)
         );
     }
+
     @GetMapping("request/{employeeId}")
     public ResponseEntity<SuccessResponse<List<EmployeeTravelDocumentResponseDTO>>> getDocumentRequest(@PathVariable int employeeId){
         return ResponseEntity.ok(
@@ -89,14 +95,6 @@ public class DocumentController {
         );
     }
 
-    @GetMapping("/{documentId}")
-    public ResponseEntity<Resource> getEmployeeDocument(@PathVariable int documentId) throws IOException{
-        Resource response = employeeDocumentService.getEmployeeDocument(documentId);
-        String type = Files.probeContentType(response.getFile().toPath());
-        return ResponseEntity.ok().contentType(MediaType.parseMediaType(type)).body(response);
-        //for pdf and ohter format handling require
-    }
-
     @GetMapping("/url/")
     public ResponseEntity<Resource> getDocumentByUrl(@RequestParam String url) throws IOException{
         Resource response = employeeDocumentService.getDocumentByUrl(url);
@@ -105,10 +103,10 @@ public class DocumentController {
     }
 
     @PutMapping("/{documentId}")
-    public ResponseEntity<SuccessResponse<Object>> updateEmployeeDocument(@PathVariable int documentId, MultipartFile file)throws IOException{
+    public ResponseEntity<SuccessResponse<Object>> updateEmployeeDocument(@PathVariable int documentId, MultipartFile file){
         employeeDocumentService.updateEmployeeDocument(documentId, file);
         return  ResponseEntity.ok(
-                new SuccessResponse<>("Documnet Updated Successfully", null)
+                new SuccessResponse<>("Document Updated Successfully", null)
         );
     }
 

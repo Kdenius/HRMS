@@ -15,14 +15,14 @@ public class DocumentTypeService {
         this.documentTypeRepository = documentTypeRepository;
     }
 
-    public DocumentType createDocumentType(String typeName){
+    public DocumentType createDocumentType(String typeName, Boolean isProvided){
         documentTypeRepository.findDocumentTypeByDocumentTypeName(typeName).ifPresent(
                 type -> {throw new RuntimeException("Document Type Already Available : " + type.getDocumentTypeName());}
         );
-                return documentTypeRepository.save(new DocumentType(typeName.toUpperCase()));
+                return documentTypeRepository.save(new DocumentType(typeName.toUpperCase(), isProvided));
     }
 
-    public List<DocumentType> getDocumentTypes(){
-        return documentTypeRepository.findAll();
+    public List<DocumentType> getDocumentTypes(Boolean isProvided){
+        return documentTypeRepository.findAllByIsProvided(isProvided);
     }
 }

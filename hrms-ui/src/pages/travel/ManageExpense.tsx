@@ -4,9 +4,9 @@ import { useGetTravelPlan } from '../../query/TravelPlanQuery';
 import { useGetExpenseByTravelPlan, useVerifyTravelExpense } from '../../query/ExpenseQuery';
 import toast from 'react-hot-toast';
 import { Eye } from 'lucide-react';
-import { type TravelExpenseResponseType } from '../../types/TravelPlan';
 import { useGetDocumentByUrl } from '../../query/DocumentQuery';
 import SelectOption from '../../common/SelectOption';
+import ConfirmModal from '../achievement/component/ConfirmModal';
 
 function ManageExpense() {
   const [selectedPlanId, setSelectedPlanId] = useState<number>();
@@ -24,14 +24,8 @@ function ManageExpense() {
   };
   const verifyExpenseMutation = useVerifyTravelExpense();
   const selectedPlan = travelPlans.find((tp) => tp.travelPlanId == selectedPlanId);
-  const [selectedExpense, setSelectedExpense] = useState<TravelExpenseResponseType>();
-  const { data: bill, refetch: refetch2 } = useGetDocumentByUrl(selectedExpense?.proofUrl!);
-
-  useEffect(() => {
-    console.log('commint')
-    if (bill)
-      window.open(URL.createObjectURL(bill!), '_blank');
-  }, [bill])
+  const [openConfirm, setOpenConfirm] = useState<number|null>();
+  const docMutation = useGetDocumentByUrl();
 
   return (
     <>
@@ -55,6 +49,7 @@ function ManageExpense() {
               <TableHeadCell>Type</TableHeadCell>
               <TableHeadCell>Amount</TableHeadCell>
               <TableHeadCell>Status</TableHeadCell>
+              <TableHeadCell>Remark</TableHeadCell>
               <TableHeadCell>Action</TableHeadCell>
             </TableHead>
 
@@ -81,25 +76,29 @@ function ManageExpense() {
                     <Badge color={getStatusColor(expense.status)}>{expense.status}</Badge>
                   </TableCell>
                   <TableCell>
+                    {expense.remark || '-'}
+                  </TableCell>
+                  <TableCell>
                     <div className="flex gap-2">
                       {expense.status === "Submitted" && (
                         <>
                           <Button size="xs" color='green' onClick={() => {
-                            verifyExpenseMutation.mutate({ expenseId: expense.employeeTravelExpenseId, status: 'Approved' }, {
+                            verifyExpenseMutation.mutate({ expenseId: expense.employeeTravelExpenseId, status: 'Approved', remark:null }, {
                               onSuccess: (data) => { toast.success(data.message); refetch() },
                               onError: (err) => console.log(err.message)
                             })
                           }}>Approve</Button>
-                          <Button size="xs" color='red' onClick={() => {
-                            verifyExpenseMutation.mutate({ expenseId: expense.employeeTravelExpenseId, status: 'Rejected' }, {
-                              onSuccess: (data) => { toast.success(data.message); refetch() },
-                            })
-                          }}>Reject</Button>
+                          <Button size="xs" color='red' onClick={() => setOpenConfirm(expense.employeeTravelExpenseId)
+                          }>Reject</Button>
                         </>
                       )}
                       <Button size="xs" color="gray" onClick={() => {
-                        setSelectedExpense(expense);
-                        refetch2();
+                        docMutation.mutate(expense.proofUrl,{
+                          onSuccess: (data)=>{
+                            const fileURL = URL.createObjectURL(data);
+                            window.open(fileURL, '_blank')
+                          }
+                        })
                       }}>
                         <Eye size={14} />
                       </Button>
@@ -111,6 +110,28 @@ function ManageExpense() {
           </Table>
         </Card>
       }
+
+      <ConfirmModal
+                open={openConfirm != null}
+                title="Reject Expense"
+                message="Are you sure you want to reject this expense ?, this action cannot be undone."
+                confirmText="Yes"
+                cancelText="No"
+                danger
+                requireRemark
+                loading={verifyExpenseMutation.isPending}
+                onConfirm={(remark) => verifyExpenseMutation.mutate({ expenseId:openConfirm!, status: "Rejected", remark: remark! },
+                    {
+                        onSuccess: data => {
+                            toast.success(data.message);
+                            refetch();
+                            setOpenConfirm(null);
+                        },
+                        onError: error => toast.error(error.message)
+                    }
+                )}
+                onClose={()=>setOpenConfirm(null)}
+            />
     </>
   )
 }

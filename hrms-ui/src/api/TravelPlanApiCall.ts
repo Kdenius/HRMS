@@ -27,6 +27,11 @@ export const updateTravelPlan = async(travelplan:TravelPlanCreate) : Promise<Api
     return response.data;
 }
 
+export const deleteTravelPlan = async(planId:number) : Promise<ApiResponseType<Object>> => {
+    const response = await Api.delete(`/travel-plan/${planId}`);
+    return response.data;
+}
+
 export const manageTravelEmployee = async ({travelPlanId, employeeIds}:{travelPlanId: number,employeeIds: number[]}) : Promise<ApiResponseType<Object>> =>{
     const response = await Api.post('/travel-plan/employee', {travelPlanId, employeeIds});
     return response.data;

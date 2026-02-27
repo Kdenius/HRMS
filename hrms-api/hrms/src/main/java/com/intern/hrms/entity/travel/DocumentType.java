@@ -12,12 +12,14 @@ import lombok.Setter;
 public class DocumentType {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-        @Column(name = "pk_document_type_id")
+    @Column(name = "pk_document_type_id")
     private int documentTypeId;
     @Column(nullable = false, unique = true)
     private String documentTypeName;
+    private Boolean isProvided;
 
-    public DocumentType(String documentTypeName) {
+    public DocumentType(String documentTypeName, Boolean isProvided) {
         this.documentTypeName = documentTypeName;
+        this.isProvided = isProvided;
     }
 }

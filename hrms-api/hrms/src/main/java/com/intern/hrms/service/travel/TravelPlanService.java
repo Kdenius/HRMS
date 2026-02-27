@@ -8,10 +8,12 @@ import com.intern.hrms.entity.Employee;
 import com.intern.hrms.entity.travel.TravelEmployee;
 import com.intern.hrms.entity.travel.TravelPlan;
 import com.intern.hrms.enums.NotificationTypeEnum;
+import com.intern.hrms.repository.general.AppConfigurationRepository;
 import com.intern.hrms.repository.general.EmployeeRepository;
 import com.intern.hrms.repository.travel.TravelEmployeeRepository;
 import com.intern.hrms.repository.travel.TravelPlanRepository;
 import com.intern.hrms.service.general.NotificationService;
+import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@AllArgsConstructor
 public class TravelPlanService {
 
     private final EmployeeRepository employeeRepository;
@@ -32,14 +35,7 @@ public class TravelPlanService {
     private final TravelPlanRepository travelPlanRepository;
     private final TravelEmployeeRepository travelEmployeeRepository;
     private final NotificationService notificationService;
-
-    public TravelPlanService(EmployeeRepository employeeRepository, ModelMapper modelMapper, TravelPlanRepository travelPlanRepository, TravelEmployeeRepository travelEmployeeRepository, NotificationService notificationService) {
-        this.employeeRepository = employeeRepository;
-        this.modelMapper = modelMapper;
-        this.travelPlanRepository = travelPlanRepository;
-        this.travelEmployeeRepository = travelEmployeeRepository;
-        this.notificationService = notificationService;
-    }
+    private final AppConfigurationRepository appConfigurationRepository;
 
     public TravelPlan createTravelPlan(TravelPlanRequestDTO travelPlanRequestDTO, String username){
         Employee creator = employeeRepository.getReferenceByEmail(username);
@@ -57,15 +53,22 @@ public class TravelPlanService {
         travelPlanRepository.save(travelPlan);
         return travelPlan;
     }
+
     public void addTravelEmployee(TravelPlan travelPlan, List<Integer> employeeIds){
         for (Integer employeeId : employeeIds) {
             Employee employee = employeeRepository.findById(employeeId).orElseThrow(
                     () -> new RuntimeException("Can't Add invalid Id to travel plan")
             );
+            boolean exist = travelEmployeeRepository.existsOverlappingTravelPlan(employeeId,travelPlan.getStartTime(),travelPlan.getEndTime());
+            if (exist) {
+                throw new RuntimeException("Employee " + employee.getFirstName() +" is already assigned to another travel plan during this period");
+            }
+
             travelEmployeeRepository.save(new TravelEmployee(travelPlan, employee));
             notificationService.notifyUser(employeeId, NotificationTypeEnum.TravelPlan, "You are selected for travel plan : "+travelPlan.getTitle());
         }
     }
+
     public void removeTravelEmployee(TravelPlan travelPlan, List<Integer> employeeIds){
         List<Integer> travelEmployeeIds = new ArrayList<>();
         for (Integer employeeId : employeeIds) {
@@ -101,8 +104,9 @@ public class TravelPlanService {
         addTravelEmployee(travelPlan, add.stream().toList());
         return travelPlan;
     }
+
     public List<TravelPlanResponseDTO> getTravelPlans(){
-        List<TravelPlan> travelPlans = travelPlanRepository.findAll();
+        List<TravelPlan> travelPlans = travelPlanRepository.findAllByIsActive(true);
         List<TravelPlanResponseDTO> result = travelPlans.stream().map(
                 travelPlan -> {
                     TravelPlanResponseDTO res = modelMapper.map(travelPlan, TravelPlanResponseDTO.class);
@@ -112,9 +116,12 @@ public class TravelPlanService {
         }).toList();
         return  result;
     }
+
     public List<TravelPlanResponseDTO> getTravelPlansByEmployee(int employeeId){
         Employee employee = employeeRepository.findById(employeeId).orElseThrow();
-        return employee.getTravelEmployee().stream().map(
+        return employee.getTravelEmployee().stream()
+                .filter(travelEmployee -> travelEmployee.getTravelPlan().getIsActive())
+                .map(
                 travelEmployee -> {
                     TravelPlan plan = travelEmployee.getTravelPlan();
                     TravelPlanResponseDTO res = modelMapper.map(plan, TravelPlanResponseDTO.class);
@@ -124,16 +131,15 @@ public class TravelPlanService {
                 }
         ).toList();
     }
+
     public List<TravelPlanResponseDTO> getTravelPlansForExpense(int employeeId){
         Employee employee = employeeRepository.findById(employeeId).orElseThrow();
+        int deadlineInDay = Integer.parseInt(appConfigurationRepository.findByConfigKey("expense_deadline").get(0).getConfigValue());
         return employee.getTravelEmployee().stream()
                 .filter(travelEmployee -> {
-                    LocalDateTime deadline = travelEmployee.getTravelPlan().getEndTime().plusDays(10);
-                    if(travelEmployee.getTravelPlan().getStartTime().isBefore(LocalDateTime.now())
-                    && LocalDateTime.now().isBefore(deadline)){
-                        return true;
-                    }
-                    return false;
+                    LocalDateTime deadline = travelEmployee.getTravelPlan().getEndTime().plusDays(deadlineInDay);
+                    TravelPlan plan = travelEmployee.getTravelPlan();
+                    return plan.getIsActive() && plan.getStartTime().isBefore(LocalDateTime.now()) && LocalDateTime.now().isBefore(deadline);
                 })
                 .map(
                 travelEmployee -> {
@@ -144,5 +150,12 @@ public class TravelPlanService {
                     return  res;
                 }
         ).toList();
+    }
+
+    public void deleteTravelPlan(int planId){
+        TravelPlan travelPlan = travelPlanRepository.findById(planId).orElseThrow();
+        removeTravelEmployee(travelPlan, travelPlan.getTravelEmployees().stream().map(te-> te.getEmployee().getEmployeeId()).toList());
+        travelPlan.setIsActive(false);
+        travelPlanRepository.save(travelPlan);
     }
 }

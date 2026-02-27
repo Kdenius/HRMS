@@ -22,12 +22,17 @@ export const createTravelExpense = async(form: FormData): Promise<ApiResponseTyp
     return response.data;
 }
 
+export const deleteTravelExpense = async(expenseId: number): Promise<ApiResponseType<Object>> => {
+    const response = await Api.delete(`/expense/${expenseId}`);
+    return response.data;
+} 
+
 export const submitTravelExpense = async(expenseId:number):Promise<ApiResponseType<Object>> => {
     const response = await Api.patch(`/expense/submit/${expenseId}`);
     return response.data;
 }
 
-export const verifyTravelExpense = async({expenseId, status}:{expenseId:number, status:string}) :Promise<ApiResponseType<Object>>  => {
-    const response = await Api.patch(`/expense/verify/${expenseId}/${status}`);
+export const verifyTravelExpense = async({expenseId, status, remark}:{expenseId:number, status:string, remark:string|null}) :Promise<ApiResponseType<Object>>  => {
+    const response = await Api.patch(`/expense/verify/${expenseId}/${status}`, remark, {headers: {'Content-Type': 'text/plain'}});
     return response.data;
 }

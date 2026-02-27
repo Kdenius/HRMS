@@ -10,6 +10,7 @@ import com.intern.hrms.service.travel.TravelDocumentService;
 import com.intern.hrms.service.travel.TravelPlanService;
 import com.intern.hrms.validation.Update;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,15 +23,11 @@ import java.util.List;
 @RestController
 @RequestMapping("api/travel-plan")
 @Tag(name = "Travel Plan Controller", description = "Endpoint for managing Travel Plan")
+@AllArgsConstructor
 public class TravelPlanController {
 
     private final TravelPlanService travelPlanService;
     private final TravelDocumentService travelDocumentService;
-
-    public TravelPlanController(TravelPlanService travelPlanService, TravelDocumentService travelDocumentService) {
-        this.travelPlanService = travelPlanService;
-        this.travelDocumentService = travelDocumentService;
-    }
 
     @GetMapping
     public ResponseEntity<SuccessResponse<Object>> getTravelPlan(){
@@ -69,6 +66,7 @@ public class TravelPlanController {
     }
 
     @PostMapping("/employee")
+    @PreAuthorize("hasRole('HR')")
     public ResponseEntity<SuccessResponse<Object>> manageTravelEmploye(@RequestBody @Validated TravelEmployeeRequestDTO travelEmployeeRequestDTO){
         travelPlanService.manageTravelEmployee(travelEmployeeRequestDTO);
         return ResponseEntity.ok(
@@ -77,6 +75,7 @@ public class TravelPlanController {
     }
 
     @PostMapping("/employee-document")
+    @PreAuthorize("hasRole('HR')")
     public ResponseEntity<SuccessResponse<Object>> addEmployeeTravelDocument(@RequestBody TravelDocumentRequestDTO travelDocumentRequestDTO){
         travelDocumentService.createAllEmployeeTravelDocument(travelDocumentRequestDTO);
         return ResponseEntity.ok(
@@ -84,5 +83,12 @@ public class TravelPlanController {
         );
     }
 
-
+    @DeleteMapping("/planId")
+    @PreAuthorize("hasRole('HR')")
+    public ResponseEntity<SuccessResponse<Object>> deleteTravelPlan(@PathVariable int planId){
+        travelPlanService.deleteTravelPlan(planId);
+        return ResponseEntity.ok(
+                new SuccessResponse<>("Travel Plan Deleted Successfully", null)
+        );
+    }
 }

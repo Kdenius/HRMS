@@ -2,20 +2,21 @@ import { Card, Modal, ModalBody, ModalHeader, ModalFooter, Button, Select, Table
 import React, { useEffect, useMemo, useState } from "react";
 import type { TravelEmployeeType, TravelPlanType } from "../../types/TravelPlan";
 import { useAddProvidedDocument, useGetProvidedDocument, useGetTravelPlan } from "../../query/TravelPlanQuery";
-import { useGetDocumentByUrl, useGetDocumentTypes, useGetEmployeeDocument, useGetTravelDocumentRequest, useVerifyTravelDocument } from "../../query/DocumentQuery";
+import { useGetDocumentByUrl, useGetDocumentTypes, useGetTravelDocumentRequest, useVerifyTravelDocument } from "../../query/DocumentQuery";
 import toast from "react-hot-toast";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import SelectOption from "../../common/SelectOption";
+import ConfirmModal from "../achievement/component/ConfirmModal";
 
 function DocumentVarification() {
     const [selectedPlanId, setSelectedPlanId] = useState<number>();
     const [selectedEmployee, setSelectedEmployee] = useState<TravelEmployeeType>();
     const [openModal, setOpenModal] = useState(false);
-    const [url, setUrl] = useState<string>();
+    const [openReupload, setOpenReupload] = useState<number | null>(null);
     const { data: travelPlans = [] } = useGetTravelPlan();
     const { data: travelDocumentRequests = [], isLoading, refetch: refetchRequest } = useGetTravelDocumentRequest(selectedEmployee?.employeeId!);
-    const { data: document, refetch } = useGetDocumentByUrl(url!);
     const verifyMutation = useVerifyTravelDocument();
+    const docMutation = useGetDocumentByUrl();
 
     const selectedPlan: TravelPlanType | undefined = travelPlans.find(t => t.travelPlanId === selectedPlanId);
 
@@ -29,17 +30,7 @@ function DocumentVarification() {
     const { data: providedDocuments } = useGetProvidedDocument({ travelPlanId: selectedPlanId!, employeeId: selectedEmployee?.employeeId! })
     const addProvidedMutation = useAddProvidedDocument();
     const { register, handleSubmit, reset } = useForm<{ documentTypeId: number, file: FileList }>();
-    const { data: documents } = useGetDocumentTypes();
-
-    useEffect(() => {
-        if (document != undefined)
-            window.open(URL.createObjectURL(document!), '_blank')
-    }, [document])
-    useEffect(() => {
-        if (url != undefined)
-            refetch()
-    }, [url])
-    // console.log(error)
+    const { data: documents } = useGetDocumentTypes(true);
 
     const onSubmit: SubmitHandler<{ documentTypeId: number, file: FileList }> = (data) => {
         const formData = new FormData();
@@ -106,13 +97,13 @@ function DocumentVarification() {
                                                     {doc.documentStatus}</span>
                                             </p>
                                             <p className="text-xs text-gray-500">Action Date: {new Date(doc.actionDate).toLocaleDateString()}</p>
-                                            {/* <p className="text-xs text-gray-500">Employee Document ID: {doc.employeeDocumentId}</p> */}
+                                            <p className="text-xs text-gray-500">Remark {doc.remark}</p>
                                         </div>
                                         <div className="flex gap-2">
                                             {doc.documentStatus === "Uploaded" && (
                                                 <>
                                                     <Button size="xs" color="green" onClick={() => verifyMutation.mutate({
-                                                        docRequestId: doc.employeeTravelDocumentId, status: "Verified"
+                                                        docRequestId: doc.employeeTravelDocumentId, status: "Verified", remark: null
                                                     },
                                                         {
                                                             onSuccess: data => {
@@ -122,18 +113,13 @@ function DocumentVarification() {
                                                             }
                                                         }
                                                     )}>Approve</Button>
-                                                    <Button size="xs" color="red" onClick={() => verifyMutation.mutate(
-                                                        { docRequestId: doc.employeeTravelDocumentId, status: "Reupload" },
-                                                        {
-                                                            onSuccess: data => {
-                                                                toast.success(data.message);
-                                                                setOpenModal(false);
-                                                                refetchRequest();
-                                                            },
-                                                            onError: error => console.log(error)
+                                                    <Button size="xs" color="red" onClick={() => setOpenReupload(doc.employeeTravelDocumentId)}>Reupload</Button>
+                                                    <Button size="xs" color="blue" onClick={() => docMutation.mutate(doc.employeeDocumentUrl, {
+                                                        onSuccess: (data) => {
+                                                            const fileURL = URL.createObjectURL(data);
+                                                            window.open(fileURL, '_blank')
                                                         }
-                                                    )}>Reupload</Button>
-                                                    <Button size="xs" color="blue" onClick={() => setUrl(doc.employeeDocumentUrl)}>View</Button>
+                                                    })}>View</Button>
                                                 </>
                                             )}
                                         </div>
@@ -166,7 +152,12 @@ function DocumentVarification() {
                                             Uploaded At: {new Date(doc.date).toLocaleDateString()}
                                         </p>
                                     </div>
-                                    <Button size="xs" color="blue" onClick={() => setUrl(doc.documentUrl)}>
+                                    <Button size="xs" color="blue" onClick={() => docMutation.mutate(doc.documentUrl, {
+                                        onSuccess: (data) => {
+                                            const fileURL = URL.createObjectURL(data);
+                                            window.open(fileURL, '_blank')
+                                        }
+                                    })}>
                                         View
                                     </Button>
                                 </div>
@@ -201,6 +192,27 @@ function DocumentVarification() {
                     </div>
                 </form>
             </Modal>
+            <ConfirmModal
+                open={openReupload != null}
+                title="Mark as Reupload"
+                message="Are you sure you want to re upload that document request ?"
+                confirmText="Yes"
+                cancelText="No"
+                requireRemark
+                danger
+                loading={verifyMutation.isPending}
+                onConfirm={(remark) => verifyMutation.mutate({ docRequestId: openReupload!, status: "Reupload", remark: remark! },
+                    {
+                        onSuccess: data => {
+                            toast.success(data.message);
+                            refetchRequest();
+                            setOpenReupload(null);
+                        },
+                        onError: error => toast.error(error.message)
+                    }
+                )}
+                onClose={() => setOpenReupload(null)}
+            />
         </>
     );
 }

@@ -54,6 +54,7 @@ export interface EmployeeTravelDocumentType {
     documentTypeId: number
     documentTypeName: string
     employeeDocumentId: number
+    remark?: string
     approver: TravelEmployeeType
     travelEmployeeEmployeeId: number
     travelEmployeeTravelPlanId: number

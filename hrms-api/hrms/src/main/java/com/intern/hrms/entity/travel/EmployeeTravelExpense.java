@@ -11,11 +11,6 @@ import java.time.LocalDate;
 @Entity
 @Getter
 @Setter
-@Table(
-        uniqueConstraints = @UniqueConstraint(
-                columnNames = {"expenseDate", "fk_travel_expense_type_id", "fk_travel_employee_id"}
-        )
-)
 public class EmployeeTravelExpense {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

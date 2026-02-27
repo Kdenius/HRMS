@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -27,6 +29,11 @@ public class TravelEmployee {
     @JoinColumn(name = "fk_employee_id", nullable = false)
         private Employee employee;
 
+    @OneToMany(mappedBy = "travelEmployee", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<EmployeeTravelDocument> employeeTravelDocuments;
+
+    @OneToMany(mappedBy = "travelEmployee", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<ProvidedTravelDocument> providedTravelDocuments;
 
     public TravelEmployee(TravelPlan travelPlan, Employee employee) {
         this.travelPlan = travelPlan;

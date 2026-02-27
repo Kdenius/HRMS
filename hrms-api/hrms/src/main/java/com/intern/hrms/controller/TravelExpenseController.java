@@ -47,15 +47,18 @@ public class TravelExpenseController {
     }
 
     @PatchMapping("/verify/{employeeTravelExpenseId}/{status}")
-    public ResponseEntity<SuccessResponse<Object>> verifyTravelExpense(@PathVariable int employeeTravelExpenseId, @PathVariable TravelExpenseStatusEnum status, Principal principal){
-        travelExpenseService.verifyEmployeeExpense(employeeTravelExpenseId, status, principal.getName());
+    public ResponseEntity<SuccessResponse<Object>> verifyTravelExpense(@PathVariable int employeeTravelExpenseId,
+                                                                       @PathVariable TravelExpenseStatusEnum status,
+                                                                       @RequestBody(required = false) String remark,
+                                                                       Principal principal){
+        travelExpenseService.verifyEmployeeExpense(employeeTravelExpenseId, status, remark, principal.getName());
         return ResponseEntity.ok(
                 new SuccessResponse<>("Expense Verified Successfully", null)
         );
     }
 
     @PostMapping()
-    public ResponseEntity<SuccessResponse<EmployeeTravelExpense>> addTravelExpense(EmployeeTravelExpenseRequestDTO dto) throws IOException {
+    public ResponseEntity<SuccessResponse<EmployeeTravelExpense>> addTravelExpense(EmployeeTravelExpenseRequestDTO dto){
         travelExpenseService.draftEmployeeExpense(dto);
         return ResponseEntity.ok(
           new SuccessResponse<>("Travel expense saved successfully", null)
@@ -72,6 +75,14 @@ public class TravelExpenseController {
     public ResponseEntity<SuccessResponse<Object>> getExpenseByEmployee(@PathVariable int employeeId){
         return ResponseEntity.ok(
                 new SuccessResponse<>(null, travelExpenseService.getExpenseByEmployee(employeeId))
+        );
+    }
+
+    @DeleteMapping("/{expenseId}")
+    public ResponseEntity<SuccessResponse<Object>> deleteDraft(@PathVariable int expenseId){
+        travelExpenseService.deleteDraft(expenseId);
+        return ResponseEntity.ok(
+                new SuccessResponse<>("Deleted Successfully", null)
         );
     }
 

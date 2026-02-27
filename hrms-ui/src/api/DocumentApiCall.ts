@@ -2,18 +2,13 @@ import type { ApiResponseType } from "../types/ApiResponse";
 import type { DocumentSubmitType, DocumentType, EmployeeTravelDocumentType, TravelDocumentSubmitType } from "../types/TravelPlan";
 import { Api } from "./AxiosBase"
 
-export const getDocumetTypes = async (): Promise<DocumentType[]> => {
-    const response = await Api.get('/document-type');
+export const getDocumetTypes = async (isProvided:boolean): Promise<DocumentType[]> => {
+    const response = await Api.get('/document-type', {params: {isProvided:isProvided}});
     return response.data.data;
 }
 
 export const addDocument = async (document:FormData) : Promise<ApiResponseType<Object>> => {
     const response = await Api.post('/document', document, {headers: {'Content-Type': 'multipart/form-data'}});
-    return response.data;
-}
-
-export const getEmployeeDocument = async(documentId: number) : Promise<Blob> =>{
-    const response = await Api.get(`/document/${documentId}`, {responseType : 'blob'});
     return response.data;
 }
 
@@ -45,7 +40,7 @@ export const reSubmitTravelDocument = async(employeeTravelDocumentId:number): Pr
     return response.data;
 }
 
-export const verifyTravelDocument = async({docRequestId, status}:{docRequestId:number, status:string}) : Promise<ApiResponseType<Object>> =>{
-    const response = await Api.patch(`/document/verify/${docRequestId}/${status}`);
+export const verifyTravelDocument = async({docRequestId, status, remark}:{docRequestId:number, status:string, remark:string|null}) : Promise<ApiResponseType<Object>> =>{
+    const response = await Api.patch(`/document/verify/${docRequestId}/${status}`, remark, {headers: {'Content-Type': 'text/plain'}});
     return response.data;
 }

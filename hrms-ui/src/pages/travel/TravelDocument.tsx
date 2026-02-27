@@ -11,13 +11,12 @@ function TravelDocument() {
   const [openModal, setOpenModal] = useState(false);
   const [selectedTravelId, setSelectedTravelId] = useState<number>();
   const user = useSelector((state: RootStateType) => state.user);
-  const [url, setUrl] = useState<string>();
-  const { data: document, refetch:refetchDocument } = useGetDocumentByUrl(url!);
   const { data: travelPlans = [] } = useGetTravelPlanByEmployee(user.userId);
   const { data: employeeDocs = [] } = useGetEmployeeDocuments(user.userId);
   const { data: travelRequests = [], refetch } = useGetTravelDocumentRequest(user.userId);
   const submitMutation = useSubmitTravelDocument();
   const reSubmitMutation = useReSubmitTravelDocument();
+  const docMutation = useGetDocumentByUrl();
   const selectedTravel = useMemo(() => {
     return travelPlans.find(
       (t) => t.travelPlanId === selectedTravelId
@@ -46,14 +45,7 @@ function TravelDocument() {
     });
   };
   const { data: providedDocuments } = useGetProvidedDocument({ travelPlanId: selectedTravelId!, employeeId: user.userId })
-  useEffect(() => {
-    if (document != undefined)
-      window.open(URL.createObjectURL(document!), '_blank')
-  }, [document])
-  useEffect(() => {
-    if (url != undefined)
-      refetchDocument()
-  }, [url])
+
 
   const getDocumentStatus = (travelPlanId: number, documentTypeId: number) => {
     const employeeDocument = employeeDocs.find(
@@ -85,7 +77,8 @@ function TravelDocument() {
       actionDate: travelDocRequest.actionDate,
       approverName: travelDocRequest.approver?.firstName,
       documentUrl: travelDocRequest.employeeDocumentUrl,
-      employeeTravelDocumentId: travelDocRequest.employeeTravelDocumentId
+      employeeTravelDocumentId: travelDocRequest.employeeTravelDocumentId,
+      remark: travelDocRequest.remark
     }
   };
 
@@ -145,9 +138,19 @@ function TravelDocument() {
                           Verify By: {status.approverName}
                         </p>
                       )}
+                      {status.documentStatus === 'Reupload' && (
+                        <p className="text-xs text-gray-500">
+                          Remark: {status.remark || '-'}
+                        </p>
+                      )}
                     </div>
                     <div className="flex gap-2">
-                      {status.documentUrl && <Button size="xs" color={'gray'} onClick={()=>setUrl(status.documentUrl)}>View</Button>}
+                      {status.documentUrl && <Button size="xs" color={'gray'} onClick={() => docMutation.mutate(status.documentUrl, {
+                        onSuccess: (data) => {
+                          const fileURL = URL.createObjectURL(data);
+                          window.open(fileURL, '_blank')
+                        }
+                      })}>View</Button>}
                       {!status.employeeHasDocument && (
                         <span className="text-xs text-red-500 font-medium">
                           Not Uploaded
@@ -160,11 +163,11 @@ function TravelDocument() {
                             Submit
                           </Button>
                         )}
-                        {status.employeeHasDocument &&
+                      {status.employeeHasDocument &&
                         status.documentStatus ===
                         "Reupload" && (
                           <Button size="xs" onClick={() => {
-                            reSubmitMutation.mutate(status.employeeTravelDocumentId!,{
+                            reSubmitMutation.mutate(status.employeeTravelDocumentId!, {
                               onSuccess: () => {
                                 toast.success("Document request re-submitted successfully");
                                 refetch();
@@ -192,7 +195,12 @@ function TravelDocument() {
                         Uploaded At: {new Date(doc.date).toLocaleDateString()}
                       </p>
                     </div>
-                    <Button size="xs" color="blue" onClick={() => setUrl(doc.documentUrl)}>
+                    <Button size="xs" color="blue" onClick={() => docMutation.mutate(doc.documentUrl, {
+                      onSuccess: (data) => {
+                        const fileURL = URL.createObjectURL(data);
+                        window.open(fileURL, '_blank')
+                      }
+                    })}>
                       View
                     </Button>
                   </div>
