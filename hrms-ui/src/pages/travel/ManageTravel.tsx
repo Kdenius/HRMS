@@ -1,31 +1,34 @@
 import { Alert, Button, Card, Label, Modal, ModalBody, ModalFooter, ModalHeader, Spinner, Textarea, TextInput } from 'flowbite-react';
-import { FileText, Palette, Plus, SquarePen, Trash2, Users, X } from 'lucide-react';
+import { FileText, Plus, SquarePen, Trash2, Users, X } from 'lucide-react';
 import React, { useState } from 'react'
 import { useForm, type SubmitHandler } from 'react-hook-form';
-import { useCreateTravelPlan, useGetTravelPlan, useManageTravelDocument, useManageTravelEmployee, useUpdateTravelPlan } from '../../query/TravelPlanQuery';
+import { useCreateTravelPlan, useDeleteTravelPlan, useGetTravelPlan, useManageTravelDocument, useManageTravelEmployee, useUpdateTravelPlan } from '../../query/TravelPlanQuery';
 import { type DocumentType, type TravelEmployeeType, type TravelPlanCreate, type TravelPlanType } from '../../types/TravelPlan';
 import toast from 'react-hot-toast';
 import { useGetEmployees } from '../../query/EmployeeQuery';
 import { useGetDocumentTypes } from '../../query/DocumentQuery';
+import ConfirmModal from '../achievement/component/ConfirmModal';
+import SearchableDropdown from '../../common/SearchableDD';
 
 function ManageTravel() {
-    const [isEditMode, setIsEditMode] = useState<boolean>(false);
     const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<TravelPlanCreate>();
-    const { data: travelPlans, refetch: refetchTravelPlan, isLoading } = useGetTravelPlan();
-    const { data: data1, mutate: mutate1, isPending: isPending1, isError: isError1, error: error1 } = useCreateTravelPlan();
+    const { data: travelPlans, refetch: refetchTravelPlan } = useGetTravelPlan();
+    const { data: allEmployees } = useGetEmployees();
+    const { data: allDocuments } = useGetDocumentTypes(false);
+    const createTravelMutation = useCreateTravelPlan();
+    const manageEmployeeMutation = useManageTravelEmployee();
+    const manageDocumentMutation = useManageTravelDocument();
+    const updateTravelMutation = useUpdateTravelPlan();
+    const deleteTravelMutation = useDeleteTravelPlan();
     const [openModal, setOpenModal] = useState<string>();
+    const [openConfirm, setOpenConfirm] = useState<number | null>(null);
     const [selectedTravelPlan, setSelectedTravelPlan] = useState<TravelPlanType>();
     const [selectedEmployees, setSelectedEmployees] = useState<TravelEmployeeType[]>();
     const [selectedDocuments, setSelectedDocuments] = useState<DocumentType[]>();
-    const { data: allEmployees, isLoading: emploading } = useGetEmployees();
-    const { data: allDocuments } = useGetDocumentTypes(false);
-    const { mutate: mutate2, isPending: isPending2, isError: isError2, error: error2 } = useManageTravelEmployee();
-    const { mutate: mutate3, isPending: isPending3, isError: isError3, error: error3 } = useManageTravelDocument();
-    const { mutate: mutate4, isPending: isPending4, isError: isError4, error: error4 } = useUpdateTravelPlan();
 
     const onSubmit: SubmitHandler<TravelPlanCreate> = (travel) => {
         if (openModal == 'edit') {
-            mutate4(travel, {
+            updateTravelMutation.mutate(travel, {
                 onSuccess: (data) => {
                     reset();
                     setOpenModal(undefined);
@@ -35,7 +38,7 @@ function ManageTravel() {
             })
             return;
         }
-        mutate1(travel, {
+        createTravelMutation.mutate(travel, {
             onSuccess: (data) => {
                 reset();
                 setOpenModal(undefined);
@@ -47,7 +50,6 @@ function ManageTravel() {
             }
         })
     }
-    const onError = () => { }
     const openSelection = (plan: TravelPlanType) => {
         setSelectedTravelPlan(plan);
         setSelectedEmployees(plan.travelEmployees)
@@ -69,7 +71,7 @@ function ManageTravel() {
         setOpenModal('edit');
     }
     const handleSelect = () => {
-        mutate2({
+        manageEmployeeMutation.mutate({
             travelPlanId: selectedTravelPlan?.travelPlanId!,
             employeeIds: selectedEmployees?.map(e => e.employeeId)!
         },
@@ -85,7 +87,7 @@ function ManageTravel() {
             })
     }
     const handleDocument = () => {
-        mutate3({
+        manageDocumentMutation.mutate({
             travelPlanId: selectedTravelPlan?.travelPlanId!,
             documentTypeIds: selectedDocuments?.map(d => d.documentTypeId)!
         }, {
@@ -114,10 +116,15 @@ function ManageTravel() {
                             </div>
                             <div className='flex gap-3 justify-center mt-auto'>
                                 {new Date(plan.startTime) > new Date() && (<>
-                                    <Button size='xs' color='gray' onClick={() => openSelection(plan)}><Users/></Button>
-                                    <Button size='xs' color='gray' onClick={() => openDocument(plan)}><FileText/></Button>
-                                    <Button size='xs' color='blue' onClick={() => openEdit(plan)}><SquarePen/></Button>
-                                    <Button size='xs' color='red'><Trash2/></Button>
+                                    <Button size='xs' color='gray' onClick={() => openSelection(plan)}>
+                                        <Users />
+                                        <span className="absolute -top-1 -right-1 w-5 h-5 text-xs flex items-center justify-center bg-blue-500 text-white rounded-full">
+                                            {plan.travelEmployees.length}
+                                        </span>
+                                    </Button>
+                                    <Button size='xs' color='gray' onClick={() => openDocument(plan)}><FileText /></Button>
+                                    <Button size='xs' color='blue' onClick={() => openEdit(plan)}><SquarePen /></Button>
+                                    <Button size='xs' color='red' onClick={() => setOpenConfirm(plan.travelPlanId)}><Trash2 /></Button>
                                 </>)}
                             </div>
                         </Card>
@@ -136,7 +143,7 @@ function ManageTravel() {
                     {openModal == 'edit' ? "Edit Travel Plan" : "Add New Travel Plan"}
                 </ModalHeader>
                 <ModalBody>
-                    <form className="space-y-4" onSubmit={handleSubmit(onSubmit, onError)}>
+                    <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
                         <div>
                             <Label htmlFor="title">Title</Label>
                             <TextInput id="title" {...register("title", { required: "Title is Require" })} placeholder="Enter travel title" required />
@@ -196,48 +203,41 @@ function ManageTravel() {
                 </ModalHeader>
                 <ModalBody>
                     <div className="space-y-6">
-                        <div>
-                            <h4 className="text-sm font-semibold mb-2">
-                                Selected Employees
-                            </h4>
-                            <div className="flex flex-wrap gap-2">
-                                {selectedEmployees?.map((emp) => (
-                                    <div key={emp.employeeId} className="flex items-center bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
-                                        {emp.firstName} {emp.lastName}
-                                        <button className="ml-2 hover:text-red-500"
-                                            onClick={() => setSelectedEmployees(selectedEmployees.filter(e => e.employeeId != emp.employeeId))}>✕</button>
-                                    </div>
-                                ))}
-                            </div>
+                        <div className="text-xl font-semibold mb-2">
+                            Selected Employees
                         </div>
-                    </div>
-                    <div>
-                        <h4 className="text-sm font-semibold m-2">Select Employees</h4>
-                        <div className="border-2 border-blue-200 rounded-lg divide-y max-h-60 overflow-y-auto">
-                            {allEmployees?.map((emp) => (
-                                <div
-                                    key={emp.employeeId}
-                                    className="p-3 hover:bg-gray-50 cursor-pointer"
-                                    onClick={() => {
-                                        // console.log(selectedEmployees);
-                                        if (!selectedEmployees?.find(e => e.employeeId == emp.employeeId)) {
-                                            setSelectedEmployees((employees) => [...employees!, emp])
-                                        }
-                                    }}
-                                >
-                                    <p className="font-medium text-sm">
-                                        {emp.firstName} {emp.lastName}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                        {emp.email}
-                                    </p>
+                        <div className="flex flex-wrap gap-2">
+                            {selectedEmployees?.map((emp) => (
+                                <div key={emp.employeeId} className="flex items-center bg-blue-100 text-blue-700 px-4 py-1 rounded-full text-sm">
+                                    <div className="flex-col items-center">
+                                        <span className="font-semibold">{emp.firstName} {emp.lastName}</span>
+                                        <div className="text-xs text-blue-500">{emp.email}</div>
+                                    </div>
+                                    <button className="ml-2 hover:text-red-500"
+                                        onClick={() => setSelectedEmployees(selectedEmployees.filter(e => e.employeeId != emp.employeeId))}
+                                    >✕</button>
                                 </div>
                             ))}
                         </div>
                     </div>
+                    <div className='mt-6 flex justify-center'>
+                        <SearchableDropdown
+                            label='Select Employee for travel'
+                            items={allEmployees!}
+                            getKey={(item) => item.employeeId}
+                            getLabel={(item) => item.firstName + " " + item.lastName}
+                            onSelect={(item) => {
+                                if (!selectedEmployees?.find(e => e.employeeId == item.employeeId)) {
+                                    setSelectedEmployees((employees) => [...employees!, item])
+                                }
+                            }}
+                            placeholder='Search'
+                            notFoundText='Employee not found.'
+                        />
+                    </div>
                 </ModalBody>
                 <ModalFooter>
-                    <Button onClick={handleSelect}>{isPending2 && <Spinner size='sm' />}Save</Button>
+                    <Button onClick={handleSelect}>{manageEmployeeMutation.isPending && <Spinner size='sm' />}Save</Button>
                     <Button color="gray" onClick={() => setOpenModal(undefined)}>Close</Button>
                 </ModalFooter>
             </Modal>
@@ -246,46 +246,37 @@ function ManageTravel() {
                 <ModalHeader>Requested Documents - {selectedTravelPlan?.title}</ModalHeader>
                 <ModalBody>
                     <div className="space-y-6">
-                        <div>
-                            <h4 className="text-sm font-semibold mb-2">Selected Documents</h4>
-                            <div className="flex flex-wrap gap-2">
-                                {selectedDocuments?.map((doc) => (
-                                    <div
-                                        key={doc.documentTypeId}
-                                        className="flex items-center bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm"
-                                    >
-                                        {doc.documentTypeName}
-                                        <button className="ml-2 hover:text-red-500"
-                                            onClick={() => {
-                                                setSelectedDocuments(selectedDocuments.filter(d => d.documentTypeId != doc.documentTypeId));
-                                            }}
-                                        >✕</button>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div>
-                                <h4 className="text-sm font-semibold m-2">
-                                    Select Documents
-                                </h4>
-                                <div className="border border-2 border-blue-200 rounded-lg divide-y max-h-60 overflow-y-auto">
-                                    {allDocuments?.map((doc) => (
-                                        <div
-                                            key={doc.documentTypeId}
-                                            className="p-3 hover:bg-gray-50 cursor-pointer"
-                                            onClick={() => {
-                                                if (!selectedDocuments?.find((d) => d.documentTypeId == doc.documentTypeId)) {
-                                                    setSelectedDocuments((docs) => [...docs!, doc]);
-                                                }
-                                            }}
-                                        >
-                                            <p className="text-sm font-medium">
-                                                {doc.documentTypeName}
-                                            </p>
-                                        </div>
-                                    ))}
+                        <div className="text-xl font-semibold mb-2">Selected Document</div>
+                        <div className="flex flex-wrap gap-2">
+                            {selectedDocuments?.map((doc) => (
+                                <div
+                                    key={doc.documentTypeId}
+                                    className="flex items-center bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm"
+                                >
+                                    {doc.documentTypeName}
+                                    <button className="ml-2 hover:text-red-500"
+                                        onClick={() => {
+                                            setSelectedDocuments(selectedDocuments.filter(d => d.documentTypeId != doc.documentTypeId));
+                                        }}
+                                    >✕</button>
                                 </div>
-                            </div>
+                            ))}
+                        </div>
+
+                        <div className='mt-6 flex justify-center'>
+                            <SearchableDropdown
+                                label='Select Document for Travel'
+                                items={allDocuments!}
+                                getKey={(item) => item.documentTypeId}
+                                getLabel={(item) => item.documentTypeName}
+                                onSelect={(item) => {
+                                    if (!selectedDocuments?.find((d) => d.documentTypeId == item.documentTypeId)) {
+                                        setSelectedDocuments((docs) => [...docs!, item]);
+                                    }
+                                }}
+                                placeholder='Search'
+                                notFoundText='Document not found.'
+                            />
                         </div>
                     </div>
                 </ModalBody>
@@ -294,6 +285,26 @@ function ManageTravel() {
                     <Button color={'gray'} onClick={() => setOpenModal(undefined)}>Cancle</Button>
                 </ModalFooter>
             </Modal>
+
+            <ConfirmModal
+                open={openConfirm != null}
+                title='Cancel Travel Plan'
+                message='Are you sure you want to cancel this travel plan ?'
+                confirmText='Yes'
+                cancelText='No'
+                danger
+                onConfirm={() => deleteTravelMutation.mutate(openConfirm!,
+                    {
+                        onSuccess: (data) => {
+                            toast.success(data.message);
+                            setOpenConfirm(null);
+                            refetchTravelPlan();
+                        },
+                        onError: (err) => toast.error(err.message)
+                    }
+                )}
+                onClose={() => setOpenConfirm(null)}
+            />
         </>
     )
 }

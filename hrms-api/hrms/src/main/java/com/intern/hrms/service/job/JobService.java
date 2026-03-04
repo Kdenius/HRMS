@@ -93,22 +93,18 @@ public class JobService {
         jobReferral.setJobReferralId(UUID.randomUUID());
         if(dto.getResumeFile() == null || dto.getResumeFile().isEmpty())
             throw new RuntimeException("Resume file not attached with referral");
-            String url = fileStorage.uploadFile("resumes/", jobReferral.getJobReferralId().toString(),dto.getResumeFile());
-            jobReferral.setResumeUrl(url);
+        String url = fileStorage.uploadFile("resumes/", jobReferral.getJobReferralId().toString(),dto.getResumeFile());
+        jobReferral.setResumeUrl(url);
         jobReferral.setReferralStatus(ReferralStatusEnum.New);
         jobReferralRepository.save(jobReferral);
-        try{
-            List<String> emails = appConfigurationRepository.findByConfigKey("referral_to").stream().map(AppConfiguration::getConfigValue).toList();
-            mailSend.sendMail(emails,null,
-                    "Referral for Job - "+ job.getTitle(),
-                    "Pleas find Referral for job.\nI am referring this candidate for job\n"
-            + "Candidate Name : " + jobReferral.getReferee() + "\nCandidate Email : " + jobReferral.getRefereeEmail() +
-                            "\nReferrer : "+jobReferral.getReferrer().getEmail(),
-                    jobReferral.getResumeUrl()
-            );
-        }catch (Exception e){
-            System.out.println("Error in sending Referral Mail"+e.getMessage());
-        }
+        List<String> emails = appConfigurationRepository.findByConfigKey("referral_to").stream().map(AppConfiguration::getConfigValue).toList();
+        mailSend.sendMail(emails,null,
+                "Referral for Job - "+ job.getTitle(),
+                "Pleas find Referral for job.\nI am referring this candidate for job\n"
+        + "Candidate Name : " + jobReferral.getReferee() + "\nCandidate Email : " + jobReferral.getRefereeEmail() +
+                        "\nReferrer : "+jobReferral.getReferrer().getEmail(),
+                jobReferral.getResumeUrl()
+        );
         return jobReferral;
     }
     public void shareJob(int jobId, String email, String username){
@@ -128,7 +124,12 @@ public class JobService {
     }
     public List<JobResponseDTO> getJobs(){
         List<Job> jobs = jobRepository.findAll();
-        return modelMapper.map(jobs, new TypeToken<List<JobResponseDTO>>(){}.getType());
+        return jobs.stream().map(job -> {
+            JobResponseDTO ret = modelMapper.map(job, JobResponseDTO.class);
+            if(job.getJobReferrals() != null)
+                ret.setReferralCount(job.getJobReferrals().size());
+            return ret;
+        }).toList();
     }
     public List<JobResponseDTO> getOpenJobs(){
         List<Job> jobs = jobRepository.findAllByIsOpen(true);

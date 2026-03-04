@@ -17,5 +17,5 @@ public class JobResponseDTO {
     private String location;
     private String jobDescriptionUrl;
     private EmployeeResponseDTO createdBy;
-    private Integer referralCount;
+    private Integer referralCount = 0;
 }

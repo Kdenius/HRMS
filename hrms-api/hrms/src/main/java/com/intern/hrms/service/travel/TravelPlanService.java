@@ -156,6 +156,8 @@ public class TravelPlanService {
         TravelPlan travelPlan = travelPlanRepository.findById(planId).orElseThrow();
         removeTravelEmployee(travelPlan, travelPlan.getTravelEmployees().stream().map(te-> te.getEmployee().getEmployeeId()).toList());
         travelPlan.setIsActive(false);
+        travelPlan.setDocumentTypes(null);
+        travelPlan.setTravelEmployees(null);
         travelPlanRepository.save(travelPlan);
     }
 }

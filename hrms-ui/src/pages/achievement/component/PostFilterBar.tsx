@@ -1,13 +1,12 @@
 import React, { useState, useMemo } from "react"
 import {
-    Button,
     Dropdown,
     TextInput,
     Badge,
     Label,
     DropdownItem,
 } from "flowbite-react"
-import { Check, Filter, FilterX, RefreshCcw, Search, X } from "lucide-react"
+import { Check, Filter, RefreshCcw, Search} from "lucide-react"
 import { toast } from "react-hot-toast"
 import type { PostFilters } from "../../../types/AchievementType"
 import { useGetDepartments, useGetEmployees, useGetRoles } from "../../../query/EmployeeQuery"

@@ -1,5 +1,5 @@
 import type { ApiResponseType } from "../types/ApiResponse";
-import type { DocumentSubmitType, DocumentType, EmployeeTravelDocumentType, TravelDocumentSubmitType } from "../types/TravelPlan";
+import type { DocumentType, EmployeeTravelDocumentType, TravelDocumentSubmitType } from "../types/TravelPlan";
 import { Api } from "./AxiosBase"
 
 export const getDocumetTypes = async (isProvided:boolean): Promise<DocumentType[]> => {
@@ -26,7 +26,7 @@ export const updateEmployeeDocument = async({documentId, form}:{documentId:numbe
 
 export const getTravelDocumentRequest = async(userId:number): Promise<EmployeeTravelDocumentType[]> =>{
     const response = await Api.get(`/document/request/${userId}`);
-    console.log(response.data.data);
+    // console.log(response.data.data);
     return response.data.data;
 }
 

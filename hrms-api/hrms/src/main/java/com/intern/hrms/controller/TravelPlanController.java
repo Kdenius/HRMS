@@ -83,7 +83,7 @@ public class TravelPlanController {
         );
     }
 
-    @DeleteMapping("/planId")
+    @DeleteMapping("/{planId}")
     @PreAuthorize("hasRole('HR')")
     public ResponseEntity<SuccessResponse<Object>> deleteTravelPlan(@PathVariable int planId){
         travelPlanService.deleteTravelPlan(planId);

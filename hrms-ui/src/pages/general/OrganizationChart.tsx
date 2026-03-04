@@ -5,10 +5,9 @@ import type { RootStateType } from '../../redux-store/Store';
 import { Button, Card, Dropdown, DropdownItem, Label, Modal, ModalBody, ModalFooter, ModalHeader } from 'flowbite-react';
 import type { EmployeeDetailType } from '../../types/CommonType';
 import { Tree, TreeNode } from 'react-organizational-chart'
-import type { TravelEmployeeType } from '../../types/TravelPlan';
-import InputField from '../../common/InputField';
+import SearchableDropdown from '../../common/SearchableDD';
 
-function ChartNode({ employeeId, detail, setSelectNode }: {employeeId:number, detail: EmployeeDetailType, setSelectNode: Function }) {
+function ChartNode({ employeeId, detail, setSelectNode }: { employeeId: number, detail: EmployeeDetailType, setSelectNode: Function }) {
     return (
         <Card className={`w-30 inline-block ${employeeId == detail?.employeeId && 'bg-blue-300'}`}
             onClick={() => setSelectNode(detail)}>
@@ -23,37 +22,25 @@ function OrganizationChart() {
     const { data } = useGetOrgChartByEmployee(selectedEmployeeId);
     const [selectNode, setSelectNode] = useState<EmployeeDetailType>();
     const { data: employees } = useGetEmployees();
-    const [query, setQuery] = useState('')
-    // console.log(data)
     const makeTree = (emp: EmployeeDetailType) => (
         <TreeNode key={emp.employeeId} label={<ChartNode employeeId={selectedEmployeeId} detail={emp} setSelectNode={setSelectNode} />}>
             {emp.childEmployee && emp.childEmployee.map(makeTree)}
         </TreeNode>
     )
 
-    const filterEmployee = useMemo(() => {
-        // console.log('called')
-        if (query)
-            return employees?.filter((emp) => {
-                return emp.firstName.toLowerCase().startsWith(query) || emp.lastName.toLowerCase().startsWith(query)
-            })
-    }, [query]);
     return (
         <>
             <div className='flex gap-6 mb-5'>
                 <h1 className="text-3xl font-bold text-gray-500">Organization Chart</h1>
-                <Dropdown label='Select Employee' className='ml-auto' >
-                    <div className='p-2'>
-                        <InputField value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.stopPropagation()}></InputField>
-                        {filterEmployee && (
-                            filterEmployee.map(emp =>
-                                <DropdownItem key={emp.employeeId} onClick={() => {setSelectedEmployeeId(emp.employeeId); setQuery('')}}>
-                                    {emp.firstName + ' ' + emp.lastName}
-                                </DropdownItem>
-                            )
-                        )}
-                    </div>
-                </Dropdown>
+                <div className='ml-auto'>
+                    <SearchableDropdown
+                        label='Select Employee'
+                        items={employees!}
+                        getKey={(item) => item.employeeId}
+                        getLabel={(item) => item.firstName + ' ' + item.lastName}
+                        onSelect={(item) => setSelectedEmployeeId(item.employeeId)}
+                    />
+                </div>
             </div>
 
             <div className='justify-items-center'>

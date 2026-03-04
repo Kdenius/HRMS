@@ -18,7 +18,7 @@ function MainLayout() {
   const { data } = useGetNotification();
   useEffect(() => {
     if (data) {
-      dispatch(InitNotification(data))
+      dispatch(InitNotification([...data].reverse()))
     }
   }, [data]);
   const location = useLocation();

@@ -99,9 +99,10 @@ function ManageJob() {
                             <p>Salary: ₹{job.salary}</p>
                             <p>Requirement: {job.requirement}</p>
                             <p>Location: {job.location}</p>
+                            <p>Referral Received : {job.referralCount}</p>
                         </div>
 
-                        <div className="flex gap-2 items-center">
+                        <div className="flex gap-2 justify-center">
                             <Button size="sm" color={job.isOpen ? 'red' : 'green'} onClick={() => handleJobStatus(job)}>{job.isOpen ? 'Close Job' : 'Open Job'}</Button>
                             <Button hidden={job.jobDescriptionUrl == undefined} size="sm" color='blue' onClick={() => docMutation.mutate(job.jobDescriptionUrl, {
                                 onSuccess: (data) => {
