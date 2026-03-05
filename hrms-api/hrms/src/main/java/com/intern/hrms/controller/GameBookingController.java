@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -43,6 +44,13 @@ public class GameBookingController {
     public ResponseEntity<SuccessResponse<List<GameBookingResponseDTO>>> getTodayBookedForGame(@PathVariable int gameId){
         return ResponseEntity.ok(
                 new SuccessResponse<>(null, gameBookingService.getTodayBookedForGame(gameId))
+        );
+    }
+
+    @GetMapping("/date/{gameId}/{date}")
+    public ResponseEntity<SuccessResponse<List<GameBookingResponseDTO>>> getBookingOnDate(@PathVariable int gameId, @PathVariable LocalDate date){
+        return ResponseEntity.ok(
+                new SuccessResponse<>(null, gameBookingService.getBookingOnDate(gameId, date))
         );
     }
 

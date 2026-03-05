@@ -62,6 +62,11 @@ export const getTodayBookedForGame = async (gameId: number): Promise<GameBooking
     return response.data.data
 }
 
+export const getBookingForDate = async ({gameId, date}:{gameId: number, date:string}): Promise<GameBookingResponseType[]> => {
+    const response = await Api.get(`/booking/date/${gameId}/${date}`)
+    return response.data.data
+}
+
 export const getEmployeeBookingsInCycle = async (gameId: number,employeeId: number): Promise<GameBookingResponseType[]> => {
     const response = await Api.get(`/booking/cycle/${gameId}/${employeeId}`)
     return response.data.data

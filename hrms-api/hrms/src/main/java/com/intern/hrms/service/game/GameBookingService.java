@@ -217,6 +217,13 @@ public class GameBookingService {
         return modelMapper.map(bookings, new TypeToken<List<GameBookingResponseDTO>>(){}.getType());
     }
 
+    public List<GameBookingResponseDTO> getBookingOnDate(int gameId, LocalDate date){
+        Game game = gameRepository.findById(gameId).orElseThrow();
+        GameCycle cycle = gameCycleRepository.findByGameAndIsActive(game, true).orElseThrow();
+        List<GameBooking> bookings = gameBookingRepository.findByGameAndGameCycleAndBookingDateAndBookingStatusNot(game, cycle, date, BookingStatusEnum.Cancelled);
+        return  modelMapper.map(bookings, new TypeToken<List<GameBookingResponseDTO>>(){}.getType());
+    }
+
     public List<GameBookingResponseDTO> getEmployeeBookingsInCurrentCycle(int gameId, int employeeId) {
         GameCycle cycle = gameCycleRepository.findByGame_GameIdAndIsActive(gameId, true);
         Employee employee = employeeRepository.findById(employeeId).orElseThrow();

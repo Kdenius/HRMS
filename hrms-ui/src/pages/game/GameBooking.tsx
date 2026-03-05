@@ -1,14 +1,15 @@
-import React, { useMemo, useState } from 'react'
-import { useCancelBooking, useCreateGameBooking, useGetEmployeeBookingsInCycle, useGetGameCycle, useGetInterestedEmployee, useGetInterestedGame, } from '../../query/GameQuery'
+import React, { useEffect, useMemo, useState } from 'react'
+import { useCancelBooking, useCreateGameBooking, useGetBookingForDate, useGetEmployeeBookingsInCycle, useGetGameCycle, useGetInterestedEmployee, useGetInterestedGame, } from '../../query/GameQuery'
 import { Card, Select, Badge, Button, Spinner, Modal, ModalHeader, ModalBody, Label, Alert, ModalFooter } from 'flowbite-react';
 import { useSelector } from 'react-redux';
 import type { RootStateType } from '../../redux-store/Store';
 import toast from 'react-hot-toast';
-import { Calendar, Clock, Recycle } from 'lucide-react';
-import type { GameBookingSubmitType, InterestedEmployeeType } from '../../types/Game';
+import { Calendar, CircleAlert, CircleCheck, Clock, Recycle } from 'lucide-react';
+import type { GameBookingResponseType, GameBookingSubmitType, InterestedEmployeeType } from '../../types/Game';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import InputField from '../../common/InputField';
 import SelectOption from '../../common/SelectOption';
+import SearchableDropdown from '../../common/SearchableDD';
 
 function GameBooking() {
     const user = useSelector((state: RootStateType) => state.user)
@@ -23,7 +24,8 @@ function GameBooking() {
     const createBookingMutation = useCreateGameBooking();
     const [selectedPlayers, setSelectedPlayers] = useState<InterestedEmployeeType[]>([]);
     const [formError, setFormError] = useState<string | null>(null);
-    const { register, handleSubmit, reset: resetCreate, formState: { errors } } = useForm<GameBookingSubmitType>();
+    const { register, handleSubmit, reset: resetCreate, formState: { errors }, watch } = useForm<GameBookingSubmitType>();
+    const bookingOnDateMutation = useGetBookingForDate();
     const slotTimes = useMemo(() => {
         if (!selectedGame) return [];
         const times: string[] = [];
@@ -68,8 +70,7 @@ function GameBooking() {
             setFormError("Date and time required");
             return;
         }
-        if(new Date(`${data.bookingDate}T${data.bookingTime}`) < new Date())
-        {
+        if (new Date(`${data.bookingDate}T${data.bookingTime}`) < new Date()) {
             setFormError("Booking not allowed for past slot");
             return;
         }
@@ -77,7 +78,7 @@ function GameBooking() {
             setFormError("Booking date must be inside cycle");
             return;
         }
-        if (selectedPlayers.length < 1 || selectedPlayers.length > selectedGame?.maxPlayer!-1) {
+        if (selectedPlayers.length < 1 || selectedPlayers.length > selectedGame?.maxPlayer! - 1) {
             setFormError("Invalid no of player selected");
             return;
         }
@@ -112,6 +113,21 @@ function GameBooking() {
         })
 
     }
+
+    useEffect(() => {
+        let bookingDate = new Date(watch('bookingDate'));
+        bookingOnDateMutation.reset();
+        if (!watch('bookingDate') || bookingDate.getDate() < new Date().getDate() || bookingDate > new Date(gameCycle?.endDate!))
+            return;
+        bookingOnDateMutation.mutate({ gameId: selectedGame?.gameId!, date: watch('bookingDate') });
+    }, [watch('bookingDate')])
+
+    const bookingOnTime = (time: string, status: string): GameBookingResponseType[] => {
+        if (!bookingOnDateMutation.data)
+            return [];
+
+        return bookingOnDateMutation.data.filter(obj => obj.bookingTime.includes(time) && obj.bookingStatus == status)
+    }
     const getStatusColor = (status: string) => {
         switch (status) {
             case "Booked":
@@ -140,7 +156,7 @@ function GameBooking() {
                 <>
                     <Card className='mb-4'>
                         <div className='flex flex-col md:flex-row gap-3 items-center'>
-                            <h5 className='font-semibold text-xl'>Your Bookings for - </h5>
+                            <h5 className='font-semibold text-xl'>Your Bookings for</h5>
                             <Badge icon={Recycle} className='text-md'>Cycle#{gameCycle?.gameCycleId}</Badge>{' • '}
                             <Badge icon={Calendar} className='text-md'>{gameCycle?.startDate} - {gameCycle?.endDate}</Badge>{' • '}
                             <Badge icon={Clock} className='text-md'>Time : {selectedGame?.startTime} - {selectedGame?.endTime}</Badge>
@@ -188,9 +204,9 @@ function GameBooking() {
                                                 </div>
                                             </div>
                                         </div>
-                                            {(booking.bookingStatus != 'Cancelled' && (new Date(`${booking.bookingDate}T${booking.bookingTime}`) > new Date())) && booking.bookedBy.employeeId == user.userId && (
-                                                <Button color="red" size="xs" onClick={() => handleCancel(booking.gameBookingId)} disabled={cancelMutation.isPending}>Cancel</Button>
-                                            )}
+                                        {(booking.bookingStatus != 'Cancelled' && (new Date(`${booking.bookingDate}T${booking.bookingTime}`) > new Date())) && booking.bookedBy.employeeId == user.userId && (
+                                            <Button color="red" size="xs" onClick={() => handleCancel(booking.gameBookingId)} disabled={cancelMutation.isPending}>Cancel</Button>
+                                        )}
                                     </Card>
                                 )
                             )}
@@ -207,6 +223,24 @@ function GameBooking() {
                             <Label>Date</Label>
                             <InputField type="date" {...register("bookingDate")} />
                         </div>
+
+                        {
+                            !bookingOnDateMutation.isPending && bookingOnDateMutation.data && (
+                                <div className='flex flex-wrap justify-center gap-3'>
+                                    {slotTimes.map(time => (
+                                        <div className='relative' key={time}>
+                                            <Badge color={bookingOnTime(time, 'Booked').length > 0 ? "red" : "green"} icon={bookingOnTime(time, 'Booked').length == 0 ? CircleCheck : CircleAlert}>{time}</Badge>
+                                            {bookingOnTime(time, 'Waiting').length > 0 && <span className="absolute -top-2 -right-3 w-5 h-5 text-xs flex items-center justify-center bg-yellow-500 text-white rounded-full">
+                                                {bookingOnTime(time, 'Waiting').length}
+                                            </span>
+                                            }
+                                        </div>
+
+                                    ))}
+                                </div>
+                            )
+                        }
+
                         <div>
                             <Label>Time</Label>
                             <Select {...register("bookingTime")}>
@@ -217,26 +251,28 @@ function GameBooking() {
                             </Select>
                         </div>
                         <div>
-                            <Label>Select Players</Label>
-                            <Select
-                                onChange={(e) => {
-                                    const emp = interestedEmployees?.find(
-                                        (x) => x.employee.employeeId === Number(e.target.value)
-                                    );
-                                    addPlayer(emp!);
-                                }}>
-                                <option>Select</option>
-                                {interestedEmployees?.map((emp) => (
-                                    <option key={emp.employee.employeeId} hidden={emp.employee.employeeId == user.userId} value={emp.employee.employeeId}>
-                                        {emp.employee.firstName + ' ' + emp.employee.lastName} ({emp.slotPlayed})
-                                    </option>
-                                ))}
-                            </Select>
+                            <div className='flex justify-center'>
+                                <SearchableDropdown
+                                    label='Select Players'
+                                    items={interestedEmployees!}
+                                    getKey={(item) => item.employeeInterestId}
+                                    getLabel={(item) => `${item.employee.firstName} ${item.employee.lastName} (${item.slotPlayed})`}
+                                    onSelect={(item) => item.employee.employeeId != user.userId ? addPlayer(item) : ''}
+                                    placeholder='Search Player'
+                                    notFoundText='No Employee found'
+                                    color='green'
+                                />
+                            </div>
                             <div className="flex flex-wrap gap-2 mt-2">
                                 {selectedPlayers.map((p) => (
-                                    <div key={p.employee.employeeId} className="flex items-center bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
-                                        {p.employee.firstName + ' ' + p.employee.lastName}
-                                        <button className="ml-2 text-red-500" onClick={() => removePlayer(p.employee.employeeId)}>✕</button>
+                                    <div key={p.employee.employeeId} className="flex items-center bg-green-100 text-green-700 px-4 py-1 rounded-full text-sm">
+                                        <div className="flex-col items-center">
+                                            <span className="font-semibold">{p.employee.firstName} {p.employee.lastName}</span>
+                                            <div className="text-xs text-green-500">{p.employee.email}</div>
+                                        </div>
+                                        <button className="ml-2 hover:text-red-500"
+                                            onClick={() => removePlayer(p.employee.employeeId)}
+                                        >✕</button>
                                     </div>
                                 ))}
                             </div>
