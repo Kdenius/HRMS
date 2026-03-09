@@ -10,21 +10,22 @@ import { useForm, type SubmitHandler } from 'react-hook-form';
 import InputField from '../../common/InputField';
 import SelectOption from '../../common/SelectOption';
 import SearchableDropdown from '../../common/SearchableDD';
+import Loader from '../../common/Loader';
 
 function GameBooking() {
     const user = useSelector((state: RootStateType) => state.user)
-    const { data: allInterestedGames } = useGetInterestedGame(user.userId);
+    const { data: allInterestedGames, isLoading:igLoading } = useGetInterestedGame(user.userId);
     const [selectedGameId, setSelectedGameId] = useState<number>();
-    const { data: gameCycle } = useGetGameCycle(selectedGameId!);
+    const { data: gameCycle, isLoading:gcLoading } = useGetGameCycle(selectedGameId!);
     const { data: bookings, isLoading: bookingLoading, refetch } = useGetEmployeeBookingsInCycle(selectedGameId!, user.userId);
     const cancelMutation = useCancelBooking()
     const selectedGame = allInterestedGames?.find((game) => game.gameId == selectedGameId);
-    const { data: interestedEmployees } = useGetInterestedEmployee(selectedGameId!);
+    const { data: interestedEmployees, isLoading:empLoading } = useGetInterestedEmployee(selectedGameId!);
     const [openModal, setOpenModal] = useState<boolean>();
     const createBookingMutation = useCreateGameBooking();
     const [selectedPlayers, setSelectedPlayers] = useState<InterestedEmployeeType[]>([]);
     const [formError, setFormError] = useState<string | null>(null);
-    const { register, handleSubmit, reset: resetCreate, formState: { errors }, watch } = useForm<GameBookingSubmitType>();
+    const { register, handleSubmit, reset: resetCreate, watch } = useForm<GameBookingSubmitType>();
     const bookingOnDateMutation = useGetBookingForDate();
     const slotTimes = useMemo(() => {
         if (!selectedGame) return [];
@@ -205,7 +206,7 @@ function GameBooking() {
                                             </div>
                                         </div>
                                         {(booking.bookingStatus != 'Cancelled' && (new Date(`${booking.bookingDate}T${booking.bookingTime}`) > new Date())) && booking.bookedBy.employeeId == user.userId && (
-                                            <Button color="red" size="xs" onClick={() => handleCancel(booking.gameBookingId)} disabled={cancelMutation.isPending}>Cancel</Button>
+                                            <Button color="red" size="xs" onClick={() => handleCancel(booking.gameBookingId)} disabled={cancelMutation.isPending}>{cancelMutation.isPending && <Spinner size='sm'/>}Cancel</Button>
                                         )}
                                     </Card>
                                 )
@@ -290,6 +291,7 @@ function GameBooking() {
                     </ModalFooter>
                 </form>
             </Modal>
+            {(igLoading || gcLoading || empLoading) && <Loader/>}
         </>
     )
 }

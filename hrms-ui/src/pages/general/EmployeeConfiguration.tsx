@@ -3,13 +3,14 @@ import { useCreateDepartment, useCreateEmployee, useCreateRole, useDeleteDepartm
 import type { EmployeeRequestType } from "../../types/CommonType";
 import toast from "react-hot-toast";
 import type { ApiErrorType } from "../../types/ApiResponse";
-import { Button, Card, Select, TextInput } from "flowbite-react";
+import { Button, Card, Select, Spinner, TextInput } from "flowbite-react";
 import { Check, Edit, Edit2, Trash2, X } from "lucide-react";
+import Loader from "../../common/Loader";
 
 const EmployeeConfiguration = () => {
     const { data: allEmployees, refetch: refetchEmp } = useGetEmployees();
 
-    const { data: departments, refetch: refetchDept } = useGetDepartments();
+    const { data: departments, refetch: refetchDept, isFetching: depFetching } = useGetDepartments();
     const createDepartment = useCreateDepartment();
     const updateDepartment = useUpdateDepartment();
     const deleteDepartment = useDeleteDepartment();
@@ -18,7 +19,7 @@ const EmployeeConfiguration = () => {
     const [departmentNewName, setDepartmentNewName] = useState("");
     const [departmentUpdateName, setDepartmentUpdateName] = useState<string | null>(null);
 
-    const { data: roles, refetch: refetchRole } = useGetRoles();
+    const { data: roles, refetch: refetchRole, isFetching: roleFetching } = useGetRoles();
     const createRoleMutation = useCreateRole();
     const updateRoleMutation = useUpdateRole();
     const deleteRoleMutation = useDeleteRole();
@@ -31,7 +32,7 @@ const EmployeeConfiguration = () => {
     const [filterDeptId, setFilterDeptId] = useState<number | undefined>(undefined);
     const [page, setPage] = useState(0);
 
-    const { data: employeePage, refetch: refetchEmployees } = useGetEmployeesPage({ page, size: 10, roleId: filterRoleId, departmentId: filterDeptId });
+    const { data: employeePage, refetch: refetchEmployees, isFetching: empFetching } = useGetEmployeesPage({ page, size: 10, roleId: filterRoleId, departmentId: filterDeptId });
     // console.log(employeePage)
     const createEmployeeMutation = useCreateEmployee();
     const updateEmployeeMutation = useUpdateEmployee();
@@ -109,50 +110,51 @@ const EmployeeConfiguration = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {departments?.map((dept, index) => (
-                                <tr key={dept.departmentId} className="border-b">
-                                    <td className="px-4 py-2">{index + 1}</td>
-                                    <td className="px-4 py-2">
-                                        {departmentEditIndex === index ? (
-                                            <TextInput
-                                                value={departmentUpdateName!}
-                                                onChange={(e) => setDepartmentUpdateName(e.target.value)}
-                                            />
-                                        ) : (
-                                            dept.departmentName
-                                        )}
-                                    </td>
-                                    <td className="px-4 py-2">
-                                        {departmentEditIndex === index ? (
-                                            <div className="flex gap-2 justify-center">
-                                                <Button
-                                                    size="sm"
-                                                    color='green'
-                                                    onClick={async () => {
-                                                        await updateDepartment.mutateAsync({ departmentId: dept.departmentId, departmentName: departmentUpdateName!, });
-                                                        setDepartmentEditIndex(null);
-                                                        refetchDept();
-                                                    }}
-                                                ><Check /></Button>
-                                                <Button size="sm" color='gray' onClick={() => setDepartmentEditIndex(null)}><X /></Button>
-                                            </div>
-                                        ) : (
-                                            <div className="flex gap-2 justify-center">
-                                                <Button
-                                                    size="sm"
-                                                    color='gray'
-                                                    onClick={() => {
-                                                        setDepartmentEditIndex(index);
-                                                        setDepartmentUpdateName(dept.departmentName);
-                                                    }}
-                                                ><Edit /></Button>
-                                                <Button size="sm" color='red' onClick={async () => { await deleteDepartment.mutateAsync(dept.departmentId); refetchDept() }}
-                                                ><Trash2 /></Button>
-                                            </div>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
+                            {depFetching ? <div className='flex items-center justify-center'><Spinner/></div> :
+                                departments?.map((dept, index) => (
+                                    <tr key={dept.departmentId} className="border-b">
+                                        <td className="px-4 py-2">{index + 1}</td>
+                                        <td className="px-4 py-2">
+                                            {departmentEditIndex === index ? (
+                                                <TextInput
+                                                    value={departmentUpdateName!}
+                                                    onChange={(e) => setDepartmentUpdateName(e.target.value)}
+                                                />
+                                            ) : (
+                                                dept.departmentName
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-2">
+                                            {departmentEditIndex === index ? (
+                                                <div className="flex gap-2 justify-center">
+                                                    <Button
+                                                        size="sm"
+                                                        color='green'
+                                                        onClick={async () => {
+                                                            await updateDepartment.mutateAsync({ departmentId: dept.departmentId, departmentName: departmentUpdateName!, });
+                                                            setDepartmentEditIndex(null);
+                                                            refetchDept();
+                                                        }}
+                                                    ><Check /></Button>
+                                                    <Button size="sm" color='gray' onClick={() => setDepartmentEditIndex(null)}><X /></Button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex gap-2 justify-center">
+                                                    <Button
+                                                        size="sm"
+                                                        color='gray'
+                                                        onClick={() => {
+                                                            setDepartmentEditIndex(index);
+                                                            setDepartmentUpdateName(dept.departmentName);
+                                                        }}
+                                                    ><Edit /></Button>
+                                                    <Button size="sm" color='red' onClick={async () => { await deleteDepartment.mutateAsync(dept.departmentId); refetchDept() }}
+                                                    ><Trash2 /></Button>
+                                                </div>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
 
                             <tr >
                                 <td></td>
@@ -184,62 +186,63 @@ const EmployeeConfiguration = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {roles?.map((role, index) => (
-                                <tr key={role.roleId} className="border-b">
-                                    <td className="px-4 py-2">{index + 1}</td>
-                                    <td className="px-4 py-2">
-                                        {roleEditIndex === index ? (
-                                            <TextInput
-                                                value={roleUpdateName!}
-                                                onChange={(e) => setRoleUpdateName(e.target.value)}
-                                            />
-                                        ) : (
-                                            role.roleName
-                                        )}
-                                    </td>
-                                    <td className="px-4 py-2">
-                                        {roleEditIndex === index ? (
-                                            <div className="flex gap-2 justify-center">
-                                                <Button size="sm" color="green"
-                                                    onClick={async () => {
-                                                        await updateRoleMutation.mutateAsync({
-                                                            roleId: role.roleId,
-                                                            roleName: roleUpdateName!,
-                                                        });
-                                                        setRoleEditIndex(null);
-                                                        refetchRole();
-                                                    }}
-                                                >
-                                                    <Check />
-                                                </Button>
-                                                <Button size="sm" color="gray" onClick={() => setRoleEditIndex(null)}><X /></Button>
-                                            </div>
-                                        ) : (
-                                            <div className="flex gap-2 justify-center">
-                                                <Button size="sm" color="gray"
-                                                    onClick={() => {
-                                                        setRoleEditIndex(index);
-                                                        setRoleUpdateName(role.roleName);
-                                                    }}
-                                                >
-                                                    <Edit />
-                                                </Button>
+                            {roleFetching ? <Spinner /> :
+                                roles?.map((role, index) => (
+                                    <tr key={role.roleId} className="border-b">
+                                        <td className="px-4 py-2">{index + 1}</td>
+                                        <td className="px-4 py-2">
+                                            {roleEditIndex === index ? (
+                                                <TextInput
+                                                    value={roleUpdateName!}
+                                                    onChange={(e) => setRoleUpdateName(e.target.value)}
+                                                />
+                                            ) : (
+                                                role.roleName
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-2">
+                                            {roleEditIndex === index ? (
+                                                <div className="flex gap-2 justify-center">
+                                                    <Button size="sm" color="green"
+                                                        onClick={async () => {
+                                                            await updateRoleMutation.mutateAsync({
+                                                                roleId: role.roleId,
+                                                                roleName: roleUpdateName!,
+                                                            });
+                                                            setRoleEditIndex(null);
+                                                            refetchRole();
+                                                        }}
+                                                    >
+                                                        <Check />
+                                                    </Button>
+                                                    <Button size="sm" color="gray" onClick={() => setRoleEditIndex(null)}><X /></Button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex gap-2 justify-center">
+                                                    <Button size="sm" color="gray"
+                                                        onClick={() => {
+                                                            setRoleEditIndex(index);
+                                                            setRoleUpdateName(role.roleName);
+                                                        }}
+                                                    >
+                                                        <Edit />
+                                                    </Button>
 
-                                                <Button size="sm" color="red"
-                                                    onClick={async () => {
-                                                        await deleteRoleMutation.mutateAsync(role.roleId);
-                                                        refetchRole();
-                                                    }}
-                                                >
-                                                    <Trash2 />
-                                                </Button>
+                                                    <Button size="sm" color="red"
+                                                        onClick={async () => {
+                                                            await deleteRoleMutation.mutateAsync(role.roleId);
+                                                            refetchRole();
+                                                        }}
+                                                    >
+                                                        <Trash2 />
+                                                    </Button>
 
-                                            </div>
-                                        )}
-                                    </td>
+                                                </div>
+                                            )}
+                                        </td>
 
-                                </tr>
-                            ))}
+                                    </tr>
+                                ))}
                             <tr>
                                 <td></td>
                                 <td className="px-4 py-2">
@@ -261,6 +264,7 @@ const EmployeeConfiguration = () => {
                         onChange={(e) => {
                             setFilterRoleId(Number(e.target.value) || undefined);
                             setPage(0);
+                            setFilterDeptId(undefined)
                         }}
                     >
                         <option value="">Filter by Role</option>
@@ -275,6 +279,7 @@ const EmployeeConfiguration = () => {
                         onChange={(e) => {
                             setFilterDeptId(Number(e.target.value) || undefined);
                             setPage(0);
+                            setFilterRoleId(undefined)
                         }}
                     >
                         <option value="">Filter by Department</option>
@@ -303,7 +308,8 @@ const EmployeeConfiguration = () => {
                         </thead>
 
                         <tbody>
-                            {employeePage?.items.map((emp, idx) => (
+                            {empFetching ? <Spinner/> :
+                            employeePage?.items.map((emp, idx) => (
                                 <tr key={emp.employeeId} className="border-b">
                                     <td className="px-4 py-2">{idx + 1 + page * 10}</td>
 
@@ -614,6 +620,11 @@ const EmployeeConfiguration = () => {
                     <Button size="sm" color="gray" disabled={page + 1 >= totalPages} onClick={() => setPage(page + 1)}>Next</Button>
                 </div>
             </Card>
+
+            { (createDepartment.isPending || updateDepartment.isPending || deleteDepartment.isPending
+                || createRoleMutation.isPending || updateRoleMutation.isPending || deleteRoleMutation.isPending
+                || createEmployeeMutation.isPending || updateEmployeeMutation.isPending || deleteEmployeeMutation.isPending
+            ) && <Loader/>}
         </div>
     );
 };

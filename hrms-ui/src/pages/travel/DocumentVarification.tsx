@@ -13,8 +13,8 @@ function DocumentVarification() {
     const [selectedEmployee, setSelectedEmployee] = useState<TravelEmployeeType>();
     const [openModal, setOpenModal] = useState(false);
     const [openReupload, setOpenReupload] = useState<number | null>(null);
-    const { data: travelPlans = [] } = useGetTravelPlan();
-    const { data: travelDocumentRequests = [], isLoading, refetch: refetchRequest } = useGetTravelDocumentRequest(selectedEmployee?.employeeId!);
+    const { data: travelPlans = [], isLoading: tpLoading } = useGetTravelPlan();
+    const { data: travelDocumentRequests = [], isFetching, refetch: refetchRequest } = useGetTravelDocumentRequest(selectedEmployee?.employeeId!);
     const verifyMutation = useVerifyTravelDocument();
     const docMutation = useGetDocumentByUrl();
 
@@ -27,7 +27,7 @@ function DocumentVarification() {
 
     const openEmployeeModal = (employee: TravelEmployeeType) => { setSelectedEmployee(employee); setOpenModal(true); };
     const [openAdd, setOpenAdd] = useState<number>();
-    const { data: providedDocuments } = useGetProvidedDocument({ travelPlanId: selectedPlanId!, employeeId: selectedEmployee?.employeeId! })
+    const { data: providedDocuments, isLoading: pdLoading, refetch } = useGetProvidedDocument({ travelPlanId: selectedPlanId!, employeeId: selectedEmployee?.employeeId! })
     const addProvidedMutation = useAddProvidedDocument();
     const { register, handleSubmit, reset } = useForm<{ documentTypeId: number, file: FileList }>();
     const { data: documents } = useGetDocumentTypes(true);
@@ -43,6 +43,7 @@ function DocumentVarification() {
             onSuccess: (data) => {
                 toast.success(data.message);
                 reset();
+                refetch();
                 setOpenAdd(undefined);
             },
             onError: (err) => toast.error(err.message)
@@ -50,15 +51,18 @@ function DocumentVarification() {
     }
     return (
         <>
-            <SelectOption
-                title='Travel Plan For Document Varification'
-                value={selectedPlanId!}
-                onChange={(value) => setSelectedPlanId(Number(value))}
-                options={travelPlans.map(
-                    (tp) => ({ label: tp.title, value: tp.travelPlanId })
-                )}
-                placeholder='Select Plan'
-            />
+            {tpLoading ? <div className='flex items-center justify-center'><Spinner /></div> :
+
+                <SelectOption
+                    title='Travel Plan For Document Varification'
+                    value={selectedPlanId!}
+                    onChange={(value) => setSelectedPlanId(Number(value))}
+                    options={travelPlans.map(
+                        (tp) => ({ label: tp.title, value: tp.travelPlanId })
+                    )}
+                    placeholder='Select Plan'
+                />
+            }
 
             {selectedPlan && (
                 <Card>
@@ -96,7 +100,7 @@ function DocumentVarification() {
                 <ModalHeader>Document Verification - {selectedEmployee?.firstName} {selectedEmployee?.lastName}</ModalHeader>
                 <ModalBody>
                     <div className="grid gap-4">
-                        {isLoading ? <Spinner /> :
+                        {isFetching ? <Spinner /> :
                             travelDocumentRequests.map(doc =>
                                 <Card key={doc.employeeTravelDocumentId} className="border border-gray-200 shadow-sm">
                                     <div className="flex justify-between items-center">
@@ -112,7 +116,7 @@ function DocumentVarification() {
                                         <div className="flex flex-col lg:flex-row gap-2">
                                             {doc.documentStatus === "Uploaded" && (
                                                 <>
-                                                    <Button size="xs" color="green" onClick={() => verifyMutation.mutate({
+                                                    <Button size="xs" color="green" disabled={verifyMutation.isPending} onClick={() => verifyMutation.mutate({
                                                         docRequestId: doc.employeeTravelDocumentId, status: "Verified", remark: null
                                                     },
                                                         {
@@ -122,13 +126,13 @@ function DocumentVarification() {
                                                                 refetchRequest();
                                                             }
                                                         }
-                                                    )}>Approve</Button>
+                                                    )}>{verifyMutation.isPending && <Spinner size="sm"/> }Approve</Button>
                                                     <Button size="xs" color="red" onClick={() => setOpenReupload(doc.employeeTravelDocumentId)}>Reupload</Button>
                                                     <Button size="xs" color="blue" onClick={() => docMutation.mutate(doc.employeeDocumentUrl, {
                                                         onSuccess: (url) => {
                                                             window.open(url, '_blank')
                                                         }
-                                                    })}>View</Button>
+                                                    })}>{docMutation.isPending ? <Spinner size="sm"/> : 'View'}</Button>
                                                 </>
                                             )}
                                         </div>
@@ -150,27 +154,28 @@ function DocumentVarification() {
                     <Card className="border border-gray-200 mt-4">
                         <h5 className="text-sm font-semibold mb-2">Provided Documents</h5>
 
-                        {!providedDocuments ? (
-                            <p className="text-xs text-gray-500">No provided documents.</p>
-                        ) : (
-                            providedDocuments?.map(doc => (
-                                <div key={doc.providedTravelDocumentId} className="flex justify-between items-center border-b py-2">
-                                    <div>
-                                        <p className="text-sm font-medium">{doc.documentTypeName}</p>
-                                        <p className="text-xs text-gray-500">
-                                            Uploaded At: {new Date(doc.date).toLocaleDateString()}
-                                        </p>
+                        {pdLoading ? <div className='flex items-center justify-center'><Spinner /></div> :
+                            !providedDocuments ? (
+                                <p className="text-xs text-gray-500">No provided documents.</p>
+                            ) : (
+                                providedDocuments?.map(doc => (
+                                    <div key={doc.providedTravelDocumentId} className="flex justify-between items-center border-b py-2">
+                                        <div>
+                                            <p className="text-sm font-medium">{doc.documentTypeName}</p>
+                                            <p className="text-xs text-gray-500">
+                                                Uploaded At: {new Date(doc.date).toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                        <Button size="xs" color="blue" onClick={() => docMutation.mutate(doc.documentUrl, {
+                                            onSuccess: (url) => {
+                                                window.open(url, '_blank')
+                                            }
+                                        })}>
+                                            {docMutation.isPending ? <Spinner size="sm"/> : 'View'}
+                                        </Button>
                                     </div>
-                                    <Button size="xs" color="blue" onClick={() => docMutation.mutate(doc.documentUrl, {
-                                        onSuccess: (url) => {
-                                            window.open(url, '_blank')
-                                        }
-                                    })}>
-                                        View
-                                    </Button>
-                                </div>
-                            ))
-                        )}
+                                ))
+                            )}
                     </Card>
                 </ModalBody>
                 <ModalFooter><Button color="gray" onClick={() => setOpenModal(false)}>Close</Button></ModalFooter>
@@ -195,7 +200,7 @@ function DocumentVarification() {
                         </div>
                     </ModalBody>
                     <div className="flex ml-6 mb-4 gap-4">
-                        <Button type="submit">Add</Button>
+                        <Button type="submit" disabled={addProvidedMutation.isPending}>{addProvidedMutation.isPending && <Spinner size="sm"/>}Add</Button>
                         <Button onClick={() => setOpenAdd(undefined)}>Cancel</Button>
                     </div>
                 </form>

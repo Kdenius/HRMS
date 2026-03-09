@@ -7,11 +7,12 @@ import { CircleCheck, Eye, X } from 'lucide-react';
 import { useGetDocumentByUrl } from '../../query/DocumentQuery';
 import SelectOption from '../../common/SelectOption';
 import ConfirmModal from '../achievement/component/ConfirmModal';
+import Loader from '../../common/Loader';
 
 function ManageExpense() {
   const [selectedPlanId, setSelectedPlanId] = useState<number>();
-  const { data: travelPlans = [] } = useGetTravelPlan();
-  const { data: expenses, refetch } = useGetExpenseByTravelPlan(selectedPlanId!);
+  const { data: travelPlans = [] , isLoading:tpLoading} = useGetTravelPlan();
+  const { data: expenses, refetch, isLoading:exLoading } = useGetExpenseByTravelPlan(selectedPlanId!);
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Submitted":
@@ -135,6 +136,8 @@ function ManageExpense() {
         )}
         onClose={() => setOpenConfirm(null)}
       />
+
+      { (tpLoading || exLoading || docMutation.isPending) &&<Loader/>}
     </>
   )
 }

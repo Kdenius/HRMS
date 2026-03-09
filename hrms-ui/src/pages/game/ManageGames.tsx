@@ -6,9 +6,10 @@ import { useForm, type SubmitHandler } from 'react-hook-form';
 import { type GameType, type GameCreateType } from '../../types/Game';
 import toast from 'react-hot-toast';
 import ConfirmModal from '../achievement/component/ConfirmModal';
+import Loader from '../../common/Loader';
 
 function ManageGames() {
-  const { data: allGame, refetch: refetchGame } = useGetGames();
+  const { data: allGame, refetch: refetchGame, isFetching } = useGetGames();
   const createMutation = useCreateGame();
   const deleteMutation = useDeleteGame();
   const updateMutation = useUpdateGame();
@@ -163,6 +164,7 @@ function ManageGames() {
                 onConfirm={confirmDelete}
                 onClose={() => setOpenDelete(null)}
             />
+      {(isFetching)&& <Loader/>}
     </>
   )
 }

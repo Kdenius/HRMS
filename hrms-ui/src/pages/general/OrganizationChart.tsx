@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { useGetEmployees, useGetOrgChartByEmployee } from '../../query/EmployeeQuery'
 import { useSelector } from 'react-redux';
 import type { RootStateType } from '../../redux-store/Store';
-import { Button, Card, Dropdown, DropdownItem, Label, Modal, ModalBody, ModalFooter, ModalHeader } from 'flowbite-react';
+import { Button, Card, Dropdown, DropdownItem, Label, Modal, ModalBody, ModalFooter, ModalHeader, Spinner } from 'flowbite-react';
 import type { EmployeeDetailType } from '../../types/CommonType';
 import { Tree, TreeNode } from 'react-organizational-chart'
 import SearchableDropdown from '../../common/SearchableDD';
@@ -19,7 +19,7 @@ function ChartNode({ employeeId, detail, setSelectNode }: { employeeId: number, 
 function OrganizationChart() {
     const user = useSelector((state: RootStateType) => state.user);
     const [selectedEmployeeId, setSelectedEmployeeId] = useState<number>(user.userId);
-    const { data } = useGetOrgChartByEmployee(selectedEmployeeId);
+    const { data, isLoading } = useGetOrgChartByEmployee(selectedEmployeeId);
     const [selectNode, setSelectNode] = useState<EmployeeDetailType>();
     const { data: employees } = useGetEmployees();
     const makeTree = (emp: EmployeeDetailType) => (
@@ -32,6 +32,7 @@ function OrganizationChart() {
         <>
             <div className='flex gap-6 mb-5'>
                 <h1 className="text-3xl font-bold text-gray-500">Organization Chart</h1>
+
                 <div className='ml-auto'>
                     <SearchableDropdown
                         label='Select Employee'
@@ -44,9 +45,11 @@ function OrganizationChart() {
             </div>
 
             <div className='justify-items-center'>
-                <Tree label={<ChartNode employeeId={selectedEmployeeId} detail={data!} setSelectNode={setSelectNode} />}>
-                    {data?.childEmployee && data.childEmployee.map(makeTree)}
-                </Tree>
+                {isLoading ? <div className='flex items-center justify-center'><Spinner/></div> :
+                    <Tree label={<ChartNode employeeId={selectedEmployeeId} detail={data!} setSelectNode={setSelectNode} />}>
+                        {data?.childEmployee && data.childEmployee.map(makeTree)}
+                    </Tree>
+                }
             </div>
 
             <Modal show={selectNode != undefined}>

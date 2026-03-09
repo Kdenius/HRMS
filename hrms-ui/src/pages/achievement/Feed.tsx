@@ -9,6 +9,7 @@ import { Button, Pagination, Spinner } from 'flowbite-react';
 import { useQueryClient } from '@tanstack/react-query';
 import ConfirmModal from './component/ConfirmModal';
 import CommentModal from './component/CommentModal';
+import Loader from '../../common/Loader';
 
 function Feed() {
     const queryClient = useQueryClient();
@@ -21,7 +22,7 @@ function Feed() {
         dateTo: undefined,
     })
     const [page, setPage] = useState<number>(1);
-    const { data: filteredPost, isLoading } = useGetPosts(filters, page);
+    const { data: filteredPost, isLoading, isRefetching } = useGetPosts(filters, page);
     const createPostMutation = useCreatePost();
     const updatePostMutation = useUpdatePost();
     const deletePostMutation = useDeletePost();
@@ -61,6 +62,8 @@ function Feed() {
         setOpenModal(true);
     };
     const onSubmit = async (payload: CreatePostPayload | UpdatePostPayload) => {
+        // console.log(payload)
+        setOpenModal(false);
         try {
             if (mode === "create") {
                 await createPostMutation.mutateAsync(
@@ -72,7 +75,6 @@ function Feed() {
                 );
             }
 
-            setOpenModal(false);
 
             // Refetch posts
             queryClient.invalidateQueries({ queryKey: ["Posts"] });
@@ -211,6 +213,9 @@ function Feed() {
                 onConfirm={(remark) => handleHrDelete(remark!)}
                 onClose={() => setHrDeleteModalOpen(false)}
             />
+            {(createPostMutation.isPending || updatePostMutation.isPending || deletePostByHrMutation.isPending || deletePostMutation.isPending
+                ||likePostMutation.isPending || unlikePostMutation.isPending || isRefetching
+            ) && <Loader/>}
         </div>
     )
 }

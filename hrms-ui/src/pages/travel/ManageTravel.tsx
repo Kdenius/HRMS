@@ -9,12 +9,13 @@ import { useGetEmployees } from '../../query/EmployeeQuery';
 import { useGetDocumentTypes } from '../../query/DocumentQuery';
 import ConfirmModal from '../achievement/component/ConfirmModal';
 import SearchableDropdown from '../../common/SearchableDD';
+import Loader from '../../common/Loader';
 
 function ManageTravel() {
     const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<TravelPlanCreate>();
-    const { data: travelPlans, refetch: refetchTravelPlan } = useGetTravelPlan();
-    const { data: allEmployees } = useGetEmployees();
-    const { data: allDocuments } = useGetDocumentTypes(false);
+    const { data: travelPlans, refetch: refetchTravelPlan, isLoading:tpLoading } = useGetTravelPlan();
+    const { data: allEmployees, isLoading:empLoading } = useGetEmployees();
+    const { data: allDocuments, isLoading:docLoading } = useGetDocumentTypes(false);
     const createTravelMutation = useCreateTravelPlan();
     const manageEmployeeMutation = useManageTravelEmployee();
     const manageDocumentMutation = useManageTravelDocument();
@@ -177,8 +178,8 @@ function ManageTravel() {
                         {Object.keys(errors).length > 0 && <Alert color='failure'>{errors.title?.message || errors.description?.message || errors.startTime?.message || errors.endTime?.message}</Alert>}
 
                         <ModalFooter>
-                            <Button type="submit">
-                                {openModal == 'edit' ? "Update" : "Create"}
+                            <Button type="submit" disabled={(createTravelMutation.isPending || updateTravelMutation.isPending)}>
+                                {(createTravelMutation.isPending || updateTravelMutation.isPending) && <Spinner size='sm'/>}{openModal == 'edit' ? "Update" : "Create"}
                             </Button>
                             <Button color="gray" onClick={() => {
                                 setOpenModal(undefined);
@@ -281,7 +282,7 @@ function ManageTravel() {
                     </div>
                 </ModalBody>
                 <ModalFooter>
-                    <Button onClick={handleDocument}>Save</Button>
+                    <Button onClick={handleDocument} disabled={manageDocumentMutation.isPending}>{manageDocumentMutation && <Spinner size='sm'/>}Save</Button>
                     <Button color={'gray'} onClick={() => setOpenModal(undefined)}>Cancle</Button>
                 </ModalFooter>
             </Modal>
@@ -305,6 +306,8 @@ function ManageTravel() {
                 )}
                 onClose={() => setOpenConfirm(null)}
             />
+
+            {(empLoading || docLoading) && <Loader/>}
         </>
     )
 }

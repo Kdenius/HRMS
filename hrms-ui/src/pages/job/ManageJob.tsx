@@ -6,15 +6,16 @@ import { Badge, Button, Card, FileInput, Label, Modal, ModalBody, ModalFooter, M
 import toast from "react-hot-toast"
 import { Plus } from "lucide-react"
 import { useGetDocumentByUrl } from "../../query/DocumentQuery"
+import Loader from "../../common/Loader"
 
 function ManageJob() {
-    const { data: allJobs, refetch: refetchAllJobs } = useGetJobs();
+    const { data: allJobs, refetch: refetchAllJobs, isLoading:jobLoading } = useGetJobs();
     const [openModal, setOpenModal] = useState<string>();
     const [selectedJob, setSelectedJob] = useState<JobType | null>(null);
     const { register, handleSubmit, reset } = useForm<JobCreateType>();
-    const { mutate: createMutate, isPending } = useCreateJob();
-    const { mutate: updateMutate, isPending: isPending2 } = useUpdateJob();
-    const { mutate: changeStatus } = useManageJobStatus();
+    const createMutation = useCreateJob();
+    const updateMutation = useUpdateJob();
+    const statusMutation = useManageJobStatus();
     const docMutation = useGetDocumentByUrl();
     // console.log(allJobs)
 
@@ -47,7 +48,7 @@ function ManageJob() {
 
         if (openModal === "edit" && selectedJob) {
             formData.append("jobId", selectedJob.jobId.toString());
-            updateMutate(formData, {
+            updateMutation.mutate(formData, {
                 onSuccess: (res) => {
                     toast.success(res.message);
                     refetchAllJobs();
@@ -60,7 +61,7 @@ function ManageJob() {
             return;
         }
 
-        createMutate(formData, {
+        createMutation.mutate(formData, {
             onSuccess: (res) => {
                 toast.success(res.message);
                 refetchAllJobs();
@@ -74,7 +75,7 @@ function ManageJob() {
     const onError: SubmitErrorHandler<JobCreateType> = () => {
     }
     const handleJobStatus = (job: JobType) => {
-        changeStatus(
+        statusMutation.mutate(
             { jobId: job.jobId, isOpen: !job.isOpen },
             {
                 onSuccess: (data) => {
@@ -97,13 +98,13 @@ function ManageJob() {
 
                         <div className="text-xs text-gray-600 space-y-1">
                             <p>Salary: ₹{job.salary}</p>
-                            <p>Requirement: {job.requirement}</p>
+                            <p>Requirement(employee): {job.requirement}</p>
                             <p>Location: {job.location}</p>
                             <p>Referral Received : {job.referralCount}</p>
                         </div>
 
                         <div className="flex gap-2 justify-center">
-                            <Button size="sm" color={job.isOpen ? 'red' : 'green'} onClick={() => handleJobStatus(job)}>{job.isOpen ? 'Close Job' : 'Open Job'}</Button>
+                            <Button size="sm" color={job.isOpen ? 'red' : 'green'} disabled={statusMutation.isPending} onClick={() => handleJobStatus(job)}>{statusMutation.isPending && <Spinner size="sm"/>}{job.isOpen ? 'Close Job' : 'Open Job'}</Button>
                             <Button hidden={job.jobDescriptionUrl == undefined} size="sm" color='blue' onClick={() => docMutation.mutate(job.jobDescriptionUrl, {
                                 onSuccess: (url) => {
                                     window.open(url, '_blank')
@@ -158,11 +159,13 @@ function ManageJob() {
                         </div>
                     </ModalBody>
                     <ModalFooter>
-                        <Button type="submit">Save</Button>
+                        <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>{(createMutation.isPending || updateMutation.isPending) && <Spinner size="sm"/>}Save</Button>
                         <Button color="gray" onClick={() => setOpenModal(undefined)}>Cancel</Button>
                     </ModalFooter>
                 </form>
             </Modal>
+
+            {(jobLoading || docMutation.isPending) && <Loader/>}
         </>
     )
 }

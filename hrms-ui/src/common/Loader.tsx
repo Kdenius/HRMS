@@ -1,0 +1,12 @@
+import { Spinner } from 'flowbite-react'
+import React from 'react'
+
+function Loader() {
+    return (
+        <div className='fixed inset-0 z-50 flex justify-center items-center backdrop-blur-xs'>
+            <Spinner size='xl' />
+        </div>
+    )
+}
+
+export default Loader

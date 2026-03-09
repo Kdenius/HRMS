@@ -5,14 +5,14 @@ import type { JobReferralCreateType, JobType } from '../../types/Job';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useGetDocumentByUrl } from '../../query/DocumentQuery';
+import Loader from '../../common/Loader';
 
 function OpenJob() {
-    const { data: openJobs } = useGetOpenJobs();
+    const { data: openJobs,isLoading } = useGetOpenJobs();
     const { mutate: createReferral, isPending } = useCreateJobReferral();
     const [openModal, setOpenModal] = useState(false);
     const [selectedJob, setSelectedJob] = useState<JobType | null>(null);
     const { register, handleSubmit, reset } = useForm<JobReferralCreateType>();
-    // const [url, setUrl] = useState<string>()
     const docMutation = useGetDocumentByUrl();
     const openReferralModal = (job: JobType) => {
         setSelectedJob(job);
@@ -97,8 +97,8 @@ function OpenJob() {
                             </div>
                         </ModalBody>
                         <ModalFooter>
-                            <Button type="submit">
-                                Submit Referral
+                            <Button type="submit" disabled={isPending}>
+                                {isPending && <Spinner size='sm'/>}Submit Referral
                             </Button>
                             <Button color="gray" onClick={() => setOpenModal(false)}>
                                 Cancel
@@ -136,6 +136,7 @@ function OpenJob() {
                     </ModalFooter>
                 </Modal>
             </div>
+            { (isLoading || docMutation.isPending) && <Loader/>}
         </>
     )
 }

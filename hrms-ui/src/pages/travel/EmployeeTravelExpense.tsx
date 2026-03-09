@@ -5,16 +5,17 @@ import { useSelector } from "react-redux";
 import type { RootStateType } from "../../redux-store/Store";
 import { useCreateTravelExpense, useDeleteTravelExpense, useGetExpenseByEmployee, useGetExpenseType, useSubmitTravelExpense } from "../../query/ExpenseQuery";
 import type { TravelExpenseResponseType, TravelExpenseSubmitType } from "../../types/TravelPlan";
-import { useForm, type SubmitErrorHandler, type SubmitHandler } from "react-hook-form";
+import { useForm, type SubmitHandler } from "react-hook-form";
 import toast from "react-hot-toast";
 import { useGetDocumentByUrl } from "../../query/DocumentQuery";
 import { Alert, Badge, Button, Card, Label, Modal, ModalBody, ModalFooter, ModalHeader, Select, Spinner, TextInput } from "flowbite-react";
+import Loader from "../../common/Loader";
 
 function EmployeeTravelExpense() {
   const [openModal, setOpenModal] = useState<string>();
   const user = useSelector((state: RootStateType) => state.user);
-  const { data: openTravel } = useGetTravelPlanForExpense(user.userId!);
-  const { data: expenseType } = useGetExpenseType();
+  const { data: openTravel, isLoading: otLoading } = useGetTravelPlanForExpense(user.userId!);
+  const { data: expenseType, isLoading: etLoading } = useGetExpenseType();
   const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<TravelExpenseSubmitType>();
   const createExpenseMutation = useCreateTravelExpense();
   const submitExpenseMutation = useSubmitTravelExpense();
@@ -46,7 +47,7 @@ function EmployeeTravelExpense() {
   }
 
   const onSubmit: SubmitHandler<TravelExpenseSubmitType> = (data) => {
-    console.log(data);
+    // console.log(data);
     const form = new FormData();
     data.expenseDetail && form.append('expenseDetail', data.expenseDetail);
     data.expenseDate && form.append('expenseDate', data.expenseDate.toString());
@@ -146,7 +147,7 @@ function EmployeeTravelExpense() {
                   <td className="px-4 py-2">
                     {expense.remark ?? "—"}
                   </td>
-                  <td className="flex justify-center">
+                  <td className="px-4 py-2">
                     <div className="flex gap-2">
                       {expense.status === "Draft" && (
                         <>
@@ -273,7 +274,7 @@ function EmployeeTravelExpense() {
           </ModalFooter>
         </form>
       </Modal>
-
+      {(otLoading || etLoading || createExpenseMutation.isPending || docMutation.isPending || deleteMutation.isPending) && <Loader />}
     </>
   );
 }

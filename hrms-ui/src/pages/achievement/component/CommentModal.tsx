@@ -1,11 +1,10 @@
-// components/common/CommentModaltsx
 import React, { useEffect, useRef, useState } from "react";
 import { Modal, Button, TextInput, Spinner, ModalHeader, ModalBody } from "flowbite-react";
-import { Edit2, Trash2, Check, X, MessageCircle, MessageCircleWarning } from "lucide-react";
+import { Edit2, Trash2, Check, X, MessageCircle, MessageCircleWarning, Loader } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCreateComment, useDeleteComment, useDeleteCommentByHr, useGetComments, useUpdateComment } from "../../../query/AchievementQuery";
 import { useSelector } from "react-redux";
-import type { RootStateType } from "../../../redux-store/store";
+import type { RootStateType } from "../../../redux-store/Store";
 import ConfirmModal from "./ConfirmModal";
 
 interface CommentModalProps {
@@ -23,7 +22,7 @@ const CommentModal: React.FC<CommentModalProps> = ({ postId, open, onClose }) =>
     const queryClient = useQueryClient();
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    const { data: comments, isLoading } = useGetComments(postId || 0);
+    const { data: comments, isFetching } = useGetComments(postId || 0);
     const user = useSelector((state: RootStateType) => state.user)
 
     const createCommentMutation = useCreateComment();
@@ -96,7 +95,7 @@ const CommentModal: React.FC<CommentModalProps> = ({ postId, open, onClose }) =>
                         </div>
 
                         <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 mb-4 hide-scrollbar">
-                            {isLoading ? (
+                            {isFetching ? (
                                 <div className="flex justify-center py-16"><Spinner size="xl" /></div>
                             ) : (
                                 comments?.map((c) => {
@@ -122,7 +121,7 @@ const CommentModal: React.FC<CommentModalProps> = ({ postId, open, onClose }) =>
                                                             onChange={(e) => setEditingComment({ ...editingComment, text: e.target.value })}
                                                             sizing="sm"
                                                         />
-                                                        <Button size="sm" color="green" onClick={() => handleUpdateComment(c.commentId)}><Check size={16} /></Button>
+                                                        <Button size="sm" color="green" disabled={updateCommentMutation.isPending} onClick={() => handleUpdateComment(c.commentId)}>{updateCommentMutation.isPending ?<Spinner size="sm"/>:<Check size={16} />}</Button>
                                                         <Button size="sm" color="gray" onClick={() => setEditingComment(null)}><X size={16} /></Button>
                                                     </div>
                                                 ) : (
@@ -140,7 +139,7 @@ const CommentModal: React.FC<CommentModalProps> = ({ postId, open, onClose }) =>
                                                             {isMine && (
                                                                 <div className="flex justify-end gap-2 mt-1">
                                                                     <Button size="xs" color="blue" onClick={() => setEditingComment({ commentId: c.commentId, text: c.text })}><Edit2 size={14} /></Button>
-                                                                    <Button size="xs" color="red" onClick={() => handleDeleteComment(c.commentId)}><Trash2 size={14} /></Button>
+                                                                    <Button size="xs" color="red" disabled={deleteCommentMutation.isPending} onClick={() => handleDeleteComment(c.commentId)}>{deleteCommentMutation.isPending ? <Spinner size="sm"/> :<Trash2 size={14} />}</Button>
                                                                 </div>
                                                             )}
                                                         </div>
@@ -168,8 +167,8 @@ const CommentModal: React.FC<CommentModalProps> = ({ postId, open, onClose }) =>
                                 onChange={(e) => setNewComment(e.target.value)}
                                 onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
                             />
-                            <Button onClick={handleAddComment} size="sm">
-                                <MessageCircle size={16} />
+                            <Button onClick={handleAddComment} disabled={createCommentMutation.isPending} size="sm">
+                                {createCommentMutation.isPending ? <Spinner size='sm'/> : <MessageCircle size={16} />}
                             </Button>
                         </div>
                     </div>
@@ -185,6 +184,7 @@ const CommentModal: React.FC<CommentModalProps> = ({ postId, open, onClose }) =>
                 onConfirm={(remark) => handleHrDelete(remark!)}
                 onClose={() => setHrDeleteModalOpen(false)}
             />
+            {deleteCommentByHrMutation.isPending && <Loader/>}
         </>
     );
 };

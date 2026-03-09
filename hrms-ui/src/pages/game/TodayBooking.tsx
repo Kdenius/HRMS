@@ -5,11 +5,12 @@ import { Badge, Card, Select, Spinner } from "flowbite-react";
 import SelectOption from "../../common/SelectOption";
 function TodayBooking() {
     const [selectedGameId, setSelectedGameId] = useState<number>();
-    const { data: games } = useGetGames();
+    const { data: games , isLoading:gLoading} = useGetGames();
     const { data: bookings, isLoading, } = useGetTodayBookedForGame(selectedGameId!);
     const selectedGame = games?.find(g => g.gameId === selectedGameId);
     return (
         <div className="flex flex-col gap-4">
+            {gLoading ? <div className='flex items-center justify-center'><Spinner/></div> :
             <SelectOption
                 title='Games in Zone'
                 value={selectedGameId!}
@@ -19,6 +20,7 @@ function TodayBooking() {
                 )!}
                 placeholder='Select Game'
             />
+            }
             
             {selectedGameId && selectedGame && (
                 <Card>

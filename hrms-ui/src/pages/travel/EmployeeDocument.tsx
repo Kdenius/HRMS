@@ -8,11 +8,12 @@ import { useGetEmployeeDocuments, useUpdateEmployeeDocument } from '../../query/
 import { useSelector } from 'react-redux';
 import type { RootStateType } from '../../redux-store/Store';
 import toast from 'react-hot-toast';
+import Loader from '../../common/Loader';
 
 function EmployeeDocument() {
     const { data: alldocumentTypes } = useGetDocumentTypes(false);
     const user = useSelector((state: RootStateType) => state.user);
-    const { data: allEmployeeDocuments, refetch } = useGetEmployeeDocuments(user.userId);
+    const { data: allEmployeeDocuments, refetch, isLoading:docLoading } = useGetEmployeeDocuments(user.userId);
     const addMutation = useAddDocument();
     const docMutation = useGetDocumentByUrl();
     const updateMutation = useUpdateEmployeeDocument();
@@ -77,7 +78,7 @@ function EmployeeDocument() {
     }, [allEmployeeDocuments]);
 
     return (
-        <>
+        <>  
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {allEmployeeDocuments?.map((doc) => (
                     <Card
@@ -158,6 +159,8 @@ function EmployeeDocument() {
                     </ModalFooter>
                 </form>
             </Modal>
+
+            {(docLoading || docMutation.isPending ) &&<Loader/>}
         </>
     )
 }

@@ -1,15 +1,13 @@
 import React, { useState } from 'react'
 import { useGetJobReferralByJob, useGetJobs, useManageJobStatus, useManageReferralStatus } from '../../query/JobQuery'
 import { Button, Card, Select } from 'flowbite-react';
-import { type JobReferralType } from '../../types/Job';
 import toast from 'react-hot-toast';
+import Loader from '../../common/Loader';
 
 function ManageJobReferral() {
-    const { data: allJobs } = useGetJobs();
+    const { data: allJobs, isLoading:jobLoading } = useGetJobs();
     const [selectedJobId, setSelectedJobId] = useState<number>();
-    const { data: referrals, refetch: refetchReferral } = useGetJobReferralByJob(selectedJobId!)
-    // const [selectedReferral, setSelectedReferral] = useState<JobReferralType>();
-    const [status, setStatus] = useState<string>();
+    const { data: referrals, refetch: refetchReferral, isLoading:refLoading } = useGetJobReferralByJob(selectedJobId!)
     const statusMutation = useManageReferralStatus();
     const nextStatus = (status: string) => {
         switch (status) {
@@ -73,6 +71,7 @@ function ManageJobReferral() {
                     </Card>
                 ))}
             </div>
+            {(allJobs || jobLoading || refLoading || statusMutation.isPending) && <Loader/>}
         </>
     )
 }
