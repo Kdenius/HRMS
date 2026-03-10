@@ -1,5 +1,5 @@
 import type { ApiResponseType } from "../types/ApiResponse";
-import type { JobReferralCreateType, JobReferralType, JobType } from "../types/Job";
+import type { JobReferralType, JobType } from "../types/Job";
 import { Api } from "./AxiosBase";
 
 export const getJobs = async(): Promise<JobType[]> =>{

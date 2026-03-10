@@ -1,5 +1,5 @@
 import { Plus, Eye, Pencil, X, CheckCircle } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { useGetTravelPlanForExpense } from "../../query/TravelPlanQuery";
 import { useSelector } from "react-redux";
 import type { RootStateType } from "../../redux-store/Store";

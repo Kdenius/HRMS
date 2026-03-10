@@ -1,6 +1,6 @@
 import { Avatar, Button, Label, Navbar as NavbarComponent } from 'flowbite-react'
-import { Bell, LogOut, Menu } from 'lucide-react'
-import React, { useState } from 'react'
+import { LogOut, Menu } from 'lucide-react'
+import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Logout, toggleSidebar } from '../redux-store/UserSlice';
 import type { AppDispatchType, RootStateType } from '../redux-store/Store';

@@ -1,5 +1,5 @@
 import { Dropdown, DropdownItem, TextInput } from 'flowbite-react';
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Search, X } from 'lucide-react';
 
 interface SearchableDropdownProps<T> {

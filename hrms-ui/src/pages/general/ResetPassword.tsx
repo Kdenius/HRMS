@@ -1,6 +1,5 @@
-import { Alert, Button, Card, Label, TextInput } from 'flowbite-react'
+import { Alert, Button, Card, Label, Spinner, TextInput } from 'flowbite-react'
 import { HatGlasses, Lock, Mail } from 'lucide-react'
-import React from 'react'
 import { useForm, type SubmitErrorHandler, type SubmitHandler } from 'react-hook-form';
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { ResetPasswordDetailType } from '../../types/CommonType';
@@ -8,7 +7,7 @@ import toast from 'react-hot-toast';
 import { useSubmitNewPassword } from '../../query/EmployeeQuery';
 
 function ResetPassword() {
-    const [searchParam, setSearchParam] = useSearchParams();
+    const [searchParam] = useSearchParams();
     const {register, handleSubmit} = useForm<ResetPasswordDetailType>();
     const {mutate, isPending, isError, error }= useSubmitNewPassword();
     const navigate = useNavigate();
@@ -61,7 +60,7 @@ function ResetPassword() {
                     </div>
                     <Alert color='failure' hidden={!isError}>{error?.message}</Alert>
                     <div className='flex justify-center'>
-                        <Button color='blue' type='submit' pill>Confirm</Button>
+                        <Button color='blue' type='submit' pill disabled={isPending}>{isPending && <Spinner size='sm'/>}Confirm</Button>
                     </div>
                 </form>
             </Card>

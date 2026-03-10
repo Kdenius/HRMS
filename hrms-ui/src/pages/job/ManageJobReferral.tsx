@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { useGetJobReferralByJob, useGetJobs, useManageJobStatus, useManageReferralStatus } from '../../query/JobQuery'
+import { useState } from 'react'
+import { useGetJobReferralByJob, useGetJobs, useManageReferralStatus } from '../../query/JobQuery'
 import { Button, Card, Select } from 'flowbite-react';
 import toast from 'react-hot-toast';
 import Loader from '../../common/Loader';

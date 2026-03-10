@@ -1,5 +1,5 @@
 import type { ApiResponseType } from "../types/ApiResponse";
-import type { TravelExpenseResponseType, TravelExpenseSubmitType, TravelExpenseType } from "../types/TravelPlan";
+import type { TravelExpenseResponseType, TravelExpenseType } from "../types/TravelPlan";
 import { Api } from "./AxiosBase";
 
 export const getExpenseByEmployee = async(userId:number): Promise<TravelExpenseResponseType[]> => {

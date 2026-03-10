@@ -1,5 +1,5 @@
 import type { ApiResponseType, PageResponseType } from "../types/ApiResponse";
-import type { GameBookingResponseType, GameBookingSubmitType, GameCreateType, GameCycleType, GameType, InterestedEmployeeType, OperationalHourUpdateType } from "../types/Game";
+import type { GameBookingResponseType, GameBookingSubmitType, GameCreateType, GameCycleType, GameType, InterestedEmployeeType } from "../types/Game";
 import { Api } from "./AxiosBase";
 
 export const getGames = async (): Promise<GameType[]> => {

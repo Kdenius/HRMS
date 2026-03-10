@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { useCreateDepartment, useCreateEmployee, useCreateRole, useDeleteDepartment, useDeleteEmployee, useDeleteRole, useGetDepartments, useGetEmployees, useGetEmployeesPage, useGetRoles, useUpdateDepartment, useUpdateEmployee, useUpdateRole } from "../../query/EmployeeQuery";
 import type { EmployeeRequestType } from "../../types/CommonType";
 import toast from "react-hot-toast";
 import type { ApiErrorType } from "../../types/ApiResponse";
 import { Button, Card, Select, Spinner, TextInput } from "flowbite-react";
-import { Check, Edit, Edit2, Trash2, X } from "lucide-react";
+import { Check, Edit, Trash2, X } from "lucide-react";
 import Loader from "../../common/Loader";
 
 const EmployeeConfiguration = () => {

@@ -1,4 +1,3 @@
-import React from 'react'
 import { useSelector } from 'react-redux';
 import type { RootStateType } from '../../redux-store/Store';
 import { useGetJobReferralByEmployee } from '../../query/JobQuery';

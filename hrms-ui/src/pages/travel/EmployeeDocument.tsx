@@ -1,6 +1,6 @@
-import { Button, Card, FileInput, Label, Modal, ModalBody, ModalFooter, ModalHeader, Select, Spinner } from 'flowbite-react';
+import { Button, Card, Modal, ModalBody, ModalFooter, ModalHeader, Select, Spinner } from 'flowbite-react';
 import { Eye, Pencil, Plus, Upload } from 'lucide-react';
-import React, {useMemo, useState } from 'react'
+import {useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form';
 import { useAddDocument, useGetDocumentByUrl, useGetDocumentTypes } from '../../query/DocumentQuery';
 import type { DocumentSubmitType, EmployeeDocumentType } from '../../types/TravelPlan';

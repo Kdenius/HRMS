@@ -1,5 +1,5 @@
 import type { PaginatedResponse } from "../types/AchievementType";
-import type { ApiResponseType, PageResponseType } from "../types/ApiResponse";
+import type { ApiResponseType } from "../types/ApiResponse";
 import type { DepartmentType, EmployeeDetailType, EmployeeRequestType, LoginDetailType, LoginResponseType, NotificationType, RoleType } from "../types/CommonType";
 import type { EmployeeDocumentType, TravelEmployeeType } from "../types/TravelPlan";
 import { Api } from "./AxiosBase"

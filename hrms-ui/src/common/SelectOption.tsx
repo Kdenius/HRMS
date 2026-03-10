@@ -1,5 +1,4 @@
 import { Card, Select } from 'flowbite-react';
-import React from 'react'
 
 interface Option {
     label: string

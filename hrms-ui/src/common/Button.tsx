@@ -1,4 +1,4 @@
-import React, { type ButtonHTMLAttributes, type ReactNode } from 'react'
+import { type ButtonHTMLAttributes, type ReactNode } from 'react'
 export interface ButtonType extends ButtonHTMLAttributes<HTMLButtonElement>{
     children?: ReactNode,
     varient?: string,

@@ -1,5 +1,5 @@
 import { useCreateJob, useGetJobs, useManageJobStatus, useUpdateJob } from "../../query/JobQuery"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import type { JobCreateType, JobType } from "../../types/Job"
 import { useForm, type SubmitErrorHandler, type SubmitHandler } from "react-hook-form"
 import { Badge, Button, Card, FileInput, Label, Modal, ModalBody, ModalFooter, ModalHeader, Spinner, TextInput } from "flowbite-react"

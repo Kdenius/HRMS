@@ -1,4 +1,3 @@
-import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatchType, RootStateType } from '../redux-store/Store';
 import { MarkAsRead } from '../redux-store/NotificationSlice';

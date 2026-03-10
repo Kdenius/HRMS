@@ -1,9 +1,8 @@
 import { Badge, Card, Select } from 'flowbite-react'
-import React from 'react'
 import { useAddInterest, useGetGames, useGetInterestedGame, useRemoveInterest } from '../../query/GameQuery'
 import { useSelector } from 'react-redux';
 import type { RootStateType } from '../../redux-store/Store';
-import { Check, CircleCheck } from 'lucide-react';
+import { CircleCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 function Profile() {

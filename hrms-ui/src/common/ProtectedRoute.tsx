@@ -1,6 +1,6 @@
-import React, { type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import { useSelector } from 'react-redux'
-import type { RootStateType } from '../redux-store/store'
+import type { RootStateType } from '../redux-store/Store'
 import { Navigate } from 'react-router-dom';
 
 function ProtectedRoute({allowedRoles, children}:({allowedRoles?:string[], children?:ReactNode})) {

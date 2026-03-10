@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useCreateJobReferral, useGetOpenJobs, useShareJob } from '../../query/JobQuery'
 import { Badge, Button, Card, FileInput, Label, Modal, ModalBody, ModalFooter, ModalHeader, Spinner, TextInput } from 'flowbite-react';
 import type { JobReferralCreateType, JobType } from '../../types/Job';

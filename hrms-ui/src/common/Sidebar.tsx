@@ -1,9 +1,8 @@
 import { Sidebar, SidebarCollapse, SidebarItem, SidebarItemGroup, SidebarItems } from "flowbite-react";
-import { LogOut, MonitorCog, Settings, UserCog } from "lucide-react";
-import React from "react";
+import { MonitorCog, Settings, UserCog } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatchType, RootStateType } from "../redux-store/Store";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Logout } from "../redux-store/UserSlice";
 
 type SidebarLinkProps = {

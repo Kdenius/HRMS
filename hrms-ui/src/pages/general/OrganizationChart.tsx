@@ -1,8 +1,8 @@
-import React, { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useGetEmployees, useGetOrgChartByEmployee } from '../../query/EmployeeQuery'
 import { useSelector } from 'react-redux';
 import type { RootStateType } from '../../redux-store/Store';
-import { Button, Card, Dropdown, DropdownItem, Label, Modal, ModalBody, ModalFooter, ModalHeader, Spinner } from 'flowbite-react';
+import { Button, Card, Modal, ModalBody, ModalFooter, ModalHeader, Spinner } from 'flowbite-react';
 import type { EmployeeDetailType } from '../../types/CommonType';
 import { Tree, TreeNode } from 'react-organizational-chart'
 import SearchableDropdown from '../../common/SearchableDD';

@@ -1,6 +1,6 @@
 import { CircleAlert, Lock, Mail, Send, UserIcon } from 'lucide-react'
-import React, { useState, type ChangeEvent } from 'react'
-import { Alert, Button, Card, Label, Modal, ModalBody, ModalHeader, Spinner, TextInput, Toast, ToastToggle } from 'flowbite-react'
+import { useState, type ChangeEvent } from 'react'
+import { Alert, Button, Card, Label, Modal, ModalBody, ModalHeader, Spinner, TextInput} from 'flowbite-react'
 import { useForm, type SubmitErrorHandler, type SubmitHandler } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';

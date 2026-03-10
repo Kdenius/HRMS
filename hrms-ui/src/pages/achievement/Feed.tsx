@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { FeedHeader } from './component/FeedHeader'
 import type { CreatePostPayload, Post, PostFilters, UpdatePostPayload } from '../../types/AchievementType'
 import { PostFilterBar } from './component/PostFilterBar';
 import { useCreatePost, useDeletePost, useDeletePostByHr, useGetPosts, useLikePost, useUnlikePost, useUpdatePost } from '../../query/AchievementQuery';
 import { PostCard } from './component/PostCard';
 import PostFormModal from './component/PostFormModal';
-import { Button, Pagination, Spinner } from 'flowbite-react';
+import {Pagination, Spinner } from 'flowbite-react';
 import { useQueryClient } from '@tanstack/react-query';
 import ConfirmModal from './component/ConfirmModal';
 import CommentModal from './component/CommentModal';

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAddConfiguration, useDeleteConfiguration, useGetConfiguration, useUpdateConfigurationByKey } from '../../query/AppConfigurationQuery';
 import toast from 'react-hot-toast';
 import { Badge, Button, Card, Label, Radio, Spinner, TextInput } from 'flowbite-react';

@@ -1,6 +1,6 @@
 import { Alert, Button, Card, Label, Modal, ModalBody, ModalFooter, ModalHeader, Spinner, Textarea, TextInput } from 'flowbite-react';
-import { FileText, Plus, SquarePen, Trash2, Users, X } from 'lucide-react';
-import React, { useState } from 'react'
+import { FileText, Plus, SquarePen, Trash2, Users} from 'lucide-react';
+import { useState } from 'react'
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { useCreateTravelPlan, useDeleteTravelPlan, useGetTravelPlan, useManageTravelDocument, useManageTravelEmployee, useUpdateTravelPlan } from '../../query/TravelPlanQuery';
 import { type DocumentType, type TravelEmployeeType, type TravelPlanCreate, type TravelPlanType } from '../../types/TravelPlan';
@@ -307,7 +307,7 @@ function ManageTravel() {
                 onClose={() => setOpenConfirm(null)}
             />
 
-            {(empLoading || docLoading) && <Loader/>}
+            {(empLoading || docLoading || tpLoading) && <Loader/>}
         </>
     )
 }

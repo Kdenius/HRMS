@@ -1,6 +1,5 @@
 import { skipToken, useMutation, useQuery } from "@tanstack/react-query"
 import { createJob, createJobReferral, getJobReferralByEmployee, getJobReferralByJob, getJobs, getOpenJobs, manageJobStatus, manageReferralStatus, shareJob, updateJob } from "../api/JobApiCall"
-import { use } from "react"
 
 export const useGetJobs = () => {
     return useQuery({

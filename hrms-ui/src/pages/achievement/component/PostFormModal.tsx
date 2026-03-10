@@ -15,11 +15,9 @@ import {
     DropdownItem,
     ModalFooter,
 } from "flowbite-react"
-import { Hash, X } from "lucide-react"
+import { Hash} from "lucide-react"
 import type { CreatePostPayload, UpdatePostPayload } from "../../../types/AchievementType"
 import { useGetDepartments, useGetRoles } from "../../../query/EmployeeQuery"
-import { useSelector } from "react-redux"
-import type { RootStateType } from "../../../redux-store/Store"
 
 type Props = {
     open: boolean
