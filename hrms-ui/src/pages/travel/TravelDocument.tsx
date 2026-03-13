@@ -89,9 +89,12 @@ function TravelDocument() {
         {travelPlans.map((plan) => (
           <Card key={plan.travelPlanId} className="shadow-md border border-gray-200 cursor-pointer hover:shadow-lg transition-all"
             onClick={() => openRequestModal(plan.travelPlanId)}>
-            <h5 className="text-lg text-center font-semibold text-gray-800">{plan.title}</h5>
-            <p className='text-gray-700 text-center text-sm'>{plan.description}</p>
-            <div className="text-sm text-gray-600 mb-3">
+              <div>
+
+            <h5 className="text-lg text-center font-semibold">{plan.title}</h5>
+              </div>
+            <p className='text-gray-700 dark:text-gray-400 text-center text-sm'>{plan.description}</p>
+            <div className="text-sm dark:text-gray-500 text-gray-600 mb-3">
               <p>Start:{" "}{new Date(plan.startTime).toLocaleDateString("en-GB")}</p>
               <p>End:{" "}{new Date(plan.endTime).toLocaleDateString("en-GB")}</p>
             </div>

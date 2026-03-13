@@ -108,7 +108,7 @@ function ManageTravel() {
                     travelPlans?.map((plan) => (
                         <Card key={plan.travelPlanId} className='shadow-md border border-gray-200'>
                             <div >
-                                <h5 className='text-xl text-center font-semibold text-gray-900'>{plan.title}</h5>
+                                <h1 className='text-xl text-center font-semibold'>{plan.title}</h1>
                             </div>
                             <p className='text-gray-700 text-center text-sm'>{plan.description}</p>
                             <div className='text-sm text-gray-600 space-y-1'>

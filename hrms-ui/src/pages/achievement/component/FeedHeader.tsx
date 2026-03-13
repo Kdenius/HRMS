@@ -8,7 +8,7 @@ interface FeedHeaderProps {
 
 export function FeedHeader({ onCreatePost, onToggleSidebar }: FeedHeaderProps) {
     return (
-        <header className="backdrop-blur-sm bg-blue-200">
+        <header className="backdrop-blur-sm bg-blue-200 dark:bg-gray-700">
             <div className="flex items-center justify-between px-4 py-3 lg:px-6">
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2">

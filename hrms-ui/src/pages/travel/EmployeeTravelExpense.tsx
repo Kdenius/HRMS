@@ -125,7 +125,7 @@ function EmployeeTravelExpense() {
 
             <tbody>
               {expenses?.map((expense) => (
-                <tr key={expense.employeeTravelExpenseId} className="bg-white">
+                <tr key={expense.employeeTravelExpenseId}>
                   <td className="px-4 py-2">
                     {expense.travelEmployeeTravelPlanTitle}
                   </td>

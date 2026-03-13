@@ -86,7 +86,7 @@ function EmployeeDocument() {
                         className="shadow-sm border border-gray-200 hover:shadow-md transition-all"
                     >
                         <div className="flex gap-2">
-                            <h5 className="text-md font-semibold text-gray-800">
+                            <h5 className="text-md font-semibold dark:text-white text-gray-800">
                                 {doc.documentTypeName}
                             </h5>
                             <div className='flex ml-auto gap-3'>

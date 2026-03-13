@@ -46,7 +46,7 @@ function Sidebar2() {
   const dispatch = useDispatch<AppDispatchType>();
 
   return (
-    <Sidebar collapsed={user.isCollapsed} className={`h-full border-r-2 border-blue-300 fixed lg:static top-0 left-0 z-50 lg:z-0 md:block lg:block ${user.isCollapsed && 'hidden'}`}>
+    <Sidebar collapsed={user.isCollapsed} className={`h-full border-r-2 border-blue-300 fixed lg:static top-0 left-0 z-50 lg:z-0  lg:block ${user.isCollapsed && 'hidden'}`}>
       <SidebarItems>
         <SidebarItemGroup>
 

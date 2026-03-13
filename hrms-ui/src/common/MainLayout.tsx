@@ -54,7 +54,7 @@ function MainLayout() {
         <Sidebar2 />
         {!user.isCollapsed && (
           <div
-            className="fixed inset-0 z-20 bg-black/50 md:hidden lg:hidden"
+            className="fixed inset-0 z-20 dark:bg-gray-400/50 bg-black/50 lg:hidden"
             onClick={() => dispatch(toggleSidebar())}
           />
         )}

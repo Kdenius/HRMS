@@ -106,7 +106,7 @@ const CommentModal: React.FC<CommentModalProps> = ({ postId, open, onClose }) =>
                                     return (
                                         <div
                                             key={c.commentId}
-                                            className={`flex items-start gap-3 ${isMine ? "justify-end" : "justify-start"}`}
+                                            className={`flex items-start dark:text-gray-800 gap-3 ${isMine ? "justify-end" : "justify-start"}`}
                                         >
                                             {!isMine && (
                                                 <div className="w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center font-semibold">
@@ -129,7 +129,7 @@ const CommentModal: React.FC<CommentModalProps> = ({ postId, open, onClose }) =>
                                                     <>
                                                         <div className="flex flex-col">
                                                             {!isMine && (
-                                                                <span className="font-semibold text-gray-900 dark:text-white">
+                                                                <span className="font-semibold text-gray-900 ">
                                                                     {c.commenterName}
                                                                 </span>
                                                             )}

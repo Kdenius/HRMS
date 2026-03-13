@@ -21,7 +21,7 @@ function Navbar() {
         <span className='self-center whitespace-nowrap text-xl font-semibold'>HRMS</span>
       </div>
       <div className='flex items-center gap-4'>
-        <span className='text-sm font-medium text-gray-700'>{user.fullName.toUpperCase()} ({user.role})</span>
+        <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>{user.fullName.toUpperCase()} ({user.role})</span>
         <Avatar className='hidden md:block' rounded size='md' onClick={() => navigate('/profile')} />
         <div className="relative">
           <Label className='text-xl' onClick={() => setShowComment((prev) => !prev)}>🔔<span className="absolute -top-1 -right-1 w-5 h-5 text-xs flex items-center justify-center bg-red-500 text-white rounded-full">

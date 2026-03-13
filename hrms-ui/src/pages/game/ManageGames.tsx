@@ -82,7 +82,7 @@ function ManageGames() {
         {allGame?.map((game) => (
           <Card key={game.gameId}>
             <div className='flex gap-2 justify-center'>
-              <h5 className="text-md font-bold text-gray-800">
+              <h5 className="text-md font-bold">
                 {game.gameName}
               </h5>
               |<p>Maximum Player : {game.maxPlayer}</p>
