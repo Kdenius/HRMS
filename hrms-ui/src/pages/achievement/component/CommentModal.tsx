@@ -10,7 +10,7 @@ import ConfirmModal from "./ConfirmModal";
 interface CommentModalProps {
     postId: number | null;
     open: boolean;
-    onClose: () => void;
+    onClose: (count: number) => void;
 }
 
 interface EditableComment {
@@ -38,22 +38,22 @@ const CommentModal: React.FC<CommentModalProps> = ({ postId, open, onClose }) =>
 
     const handleAddComment = async () => {
         if (!newComment.trim() || !postId) return;
-        await createCommentMutation.mutateAsync({ postId, text: newComment });
+        const res = await createCommentMutation.mutateAsync({ postId, text: newComment });
         setNewComment("");
-        queryClient.invalidateQueries({ queryKey: ["Comments", postId] });
+        queryClient.setQueryData(["Comments", postId], [...comments!, res])
     };
 
     const handleUpdateComment = async (commentId: number) => {
         if (!editingComment) return;
-        await updateCommentMutation.mutateAsync({ commentId, text: editingComment.text });
+        const res = await updateCommentMutation.mutateAsync({ commentId, text: editingComment.text });
         setEditingComment(null);
-        queryClient.invalidateQueries({ queryKey: ["Comments", postId] });
+        queryClient.setQueryData(["Comments", postId], comments?.map(comment => comment.commentId == commentId ? res : comment))
     };
 
     const handleDeleteComment = async (commentId: number) => {
         if (!postId) return;
         await deleteCommentMutation.mutateAsync(commentId);
-        queryClient.invalidateQueries({ queryKey: ["Comments", postId] });
+        queryClient.setQueryData(["Comments", postId], comments?.filter(comment => comment.commentId != commentId))
     };
 
     const formatInitials = (name: string) => {
@@ -62,9 +62,10 @@ const CommentModal: React.FC<CommentModalProps> = ({ postId, open, onClose }) =>
         return name.substring(0, 2).toUpperCase();
     };
 
-    const handleHrDelete = async(remark: string) => {
+    const handleHrDelete = async (remark: string) => {
         await deleteCommentByHrMutation.mutateAsync({ id: selecteCommentId!, remark: remark });
-        queryClient.invalidateQueries({ queryKey: ["Comments", postId] });
+        // queryClient.invalidateQueries({ queryKey: ["Comments", postId] });
+        queryClient.setQueryData(["Comments", postId], comments?.filter(comment => comment.commentId != selecteCommentId))
         setHrDeleteModalOpen(false);
         setSelectedCommentId(undefined);
     }
@@ -77,7 +78,7 @@ const CommentModal: React.FC<CommentModalProps> = ({ postId, open, onClose }) =>
 
     return (
         <>
-            <Modal show={open} size="lg" onClose={onClose} popup>
+            <Modal show={open} size="lg" popup>
                 <ModalHeader />
                 <ModalBody>
                     <div className="flex flex-col h-[70vh]">
@@ -87,7 +88,7 @@ const CommentModal: React.FC<CommentModalProps> = ({ postId, open, onClose }) =>
                             </h3>
 
                             <button
-                                onClick={onClose}
+                                onClick={() => onClose(comments?.length || 0,)}
                                 className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                             >
                                 ✕
@@ -121,7 +122,7 @@ const CommentModal: React.FC<CommentModalProps> = ({ postId, open, onClose }) =>
                                                             onChange={(e) => setEditingComment({ ...editingComment, text: e.target.value })}
                                                             sizing="sm"
                                                         />
-                                                        <Button size="sm" color="green" disabled={updateCommentMutation.isPending} onClick={() => handleUpdateComment(c.commentId)}>{updateCommentMutation.isPending ?<Spinner size="sm"/>:<Check size={16} />}</Button>
+                                                        <Button size="sm" color="green" disabled={updateCommentMutation.isPending} onClick={() => handleUpdateComment(c.commentId)}>{updateCommentMutation.isPending ? <Spinner size="sm" /> : <Check size={16} />}</Button>
                                                         <Button size="sm" color="gray" onClick={() => setEditingComment(null)}><X size={16} /></Button>
                                                     </div>
                                                 ) : (
@@ -134,12 +135,12 @@ const CommentModal: React.FC<CommentModalProps> = ({ postId, open, onClose }) =>
                                                             )}
                                                             <span className="break-words whitespace-pre-wrap">{c.text}</span>
                                                             {user.role == 'HR' && !isMine && (
-                                                                <MessageCircleWarning color="red" className="ml-auto" size={15} onClick={()=> {setSelectedCommentId(c.commentId); setHrDeleteModalOpen(true)}}/>
+                                                                <MessageCircleWarning color="red" className="ml-auto" size={15} onClick={() => { setSelectedCommentId(c.commentId); setHrDeleteModalOpen(true) }} />
                                                             )}
                                                             {isMine && (
                                                                 <div className="flex justify-end gap-2 mt-1">
                                                                     <Button size="xs" color="blue" onClick={() => setEditingComment({ commentId: c.commentId, text: c.text })}><Edit2 size={14} /></Button>
-                                                                    <Button size="xs" color="red" onClick={() => handleDeleteComment(c.commentId)}><Trash2 size={14}/></Button>
+                                                                    <Button size="xs" color="red" onClick={() => handleDeleteComment(c.commentId)}><Trash2 size={14} /></Button>
                                                                 </div>
                                                             )}
                                                         </div>
@@ -168,7 +169,7 @@ const CommentModal: React.FC<CommentModalProps> = ({ postId, open, onClose }) =>
                                 onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
                             />
                             <Button onClick={handleAddComment} disabled={createCommentMutation.isPending} size="sm">
-                                {createCommentMutation.isPending ? <Spinner size='sm'/> : <MessageCircle size={16} />}
+                                {createCommentMutation.isPending ? <Spinner size='sm' /> : <MessageCircle size={16} />}
                             </Button>
                         </div>
                     </div>
@@ -185,7 +186,7 @@ const CommentModal: React.FC<CommentModalProps> = ({ postId, open, onClose }) =>
                 onConfirm={(remark) => handleHrDelete(remark!)}
                 onClose={() => setHrDeleteModalOpen(false)}
             />
-            {(deleteCommentMutation.isPending) && <Loader/>}
+            {(deleteCommentMutation.isPending) && <Loader />}
         </>
     );
 };

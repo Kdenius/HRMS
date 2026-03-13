@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { FeedHeader } from './component/FeedHeader'
-import type { CreatePostPayload, Post, PostFilters, UpdatePostPayload } from '../../types/AchievementType'
+import type { CreatePostPayload, PaginatedResponse, Post, PostFilters, UpdatePostPayload } from '../../types/AchievementType'
 import { PostFilterBar } from './component/PostFilterBar';
 import { useCreatePost, useDeletePost, useDeletePostByHr, useGetPosts, useLikePost, useUnlikePost, useUpdatePost } from '../../query/AchievementQuery';
 import { PostCard } from './component/PostCard';
 import PostFormModal from './component/PostFormModal';
-import {Pagination, Spinner } from 'flowbite-react';
+import { Pagination } from 'flowbite-react';
 import { useQueryClient } from '@tanstack/react-query';
 import ConfirmModal from './component/ConfirmModal';
 import CommentModal from './component/CommentModal';
@@ -22,7 +22,7 @@ function Feed() {
         dateTo: undefined,
     })
     const [page, setPage] = useState<number>(1);
-    const { data: filteredPost, isLoading, isRefetching } = useGetPosts(filters, page);
+    const { data: filteredPost, isRefetching } = useGetPosts(filters, page);
     const createPostMutation = useCreatePost();
     const updatePostMutation = useUpdatePost();
     const deletePostMutation = useDeletePost();
@@ -89,13 +89,51 @@ function Feed() {
     };
 
     const onLike = async (id: number) => {
-        await likePostMutation.mutateAsync(Number(id));
-        queryClient.invalidateQueries({ queryKey: ["Posts"] });
+        // await likePostMutation.mutateAsync(Number(id));
+        // queryClient.invalidateQueries({ queryKey: ["Posts"] });
+
+        queryClient.setQueryData(["Posts", filters, page], (old: PaginatedResponse<Post>) => {
+            if (!old) return old;
+
+            return {
+                ...old,
+                items: old.items.map((post: Post) =>
+                    post.postId === id
+                        ? {
+                            ...post,
+                            isLikedByCurrentUser: true,
+                            likeCount: post.likeCount + 1,
+                        }
+                        : post
+                ),
+            };
+        });
+
+        likePostMutation.mutate(id);
     };
 
     const onUnlike = async (id: number) => {
-        await unlikePostMutation.mutateAsync(Number(id));
-        queryClient.invalidateQueries({ queryKey: ["Posts"] });
+        // await unlikePostMutation.mutateAsync(Number(id));
+        // queryClient.invalidateQueries({ queryKey: ["Posts"] });
+
+        queryClient.setQueryData(["Posts", filters, page], (old: PaginatedResponse<Post>) => {
+            if (!old) return old;
+
+            return {
+                ...old,
+                items: old.items.map((post: Post) =>
+                    post.postId === id
+                        ? {
+                            ...post,
+                            isLikedByCurrentUser: false,
+                            likeCount: post.likeCount - 1,
+                        }
+                        : post
+                ),
+            };
+        });
+
+        unlikePostMutation.mutate(id);
     };
 
     const confirmDelete = async () => {
@@ -103,7 +141,13 @@ function Feed() {
 
         try {
             await deletePostMutation.mutateAsync(selectedPostId);
-            queryClient.invalidateQueries({ queryKey: ["Posts"] });
+            // queryClient.invalidateQueries({ queryKey: ["Posts"] });
+            queryClient.setQueryData(["Posts", filters, page], (old: PaginatedResponse<Post>) => {
+                return {
+                    ...old,
+                    items: old.items.filter(post => post.postId !== selectedPostId)
+                }
+            })
             setDeleteModalOpen(false);
             setSelectedPostId(null);
         } catch (error) {
@@ -121,9 +165,28 @@ function Feed() {
         setHrDeleteModalOpen(true);
     }
 
+    const onCommentClose = (count: number) => {
+        setCommentModalOpen(false);
+        queryClient.setQueryData(["Posts", filters, page], (old: PaginatedResponse<Post>) => {
+            if (!old) return old;
+            return {
+                ...old,
+                items: old.items.map((item) => item.postId == selectedPostId ? {
+                    ...item,
+                    commentCount: count
+                } : item)
+            };
+        })
+    }
+
     const handleHrDelete = async (remark: string) => {
         await deletePostByHrMutation.mutateAsync({ id: selectedPostId!, remark: remark });
-        queryClient.invalidateQueries({ queryKey: ["Posts"] });
+        queryClient.setQueryData(["Posts", filters, page], (old: PaginatedResponse<Post>) => {
+                return {
+                    ...old,
+                    items: old.items.filter(post => post.postId !== selectedPostId)
+                }
+            })
         setHrDeleteModalOpen(false);
         setSelectedPostId(null);
     }
@@ -138,16 +201,12 @@ function Feed() {
             <CommentModal
                 postId={selectedPostId}
                 open={commentModalOpen}
-                onClose={() => {setCommentModalOpen(false); queryClient.invalidateQueries({ queryKey: ["Posts"] });}}
+                onClose={onCommentClose}
             />
 
             <div className="flex-1 overflow-hidden">
                 <div className="max-w-2xl mx-auto h-full p-4 overflow-y-auto space-y-4 hide-scrollbar">
-                    {isLoading ? (
-                        <div className="flex justify-center py-16">
-                            <Spinner size="xl" />
-                        </div>
-                    ) :
+                    {
                         filteredPost?.items.length === 0 ? (
                             <div className="text-center py-16">
                                 <p className="text-muted-foreground text-sm">
@@ -213,9 +272,9 @@ function Feed() {
                 onConfirm={(remark) => handleHrDelete(remark!)}
                 onClose={() => setHrDeleteModalOpen(false)}
             />
-            {(createPostMutation.isPending || updatePostMutation.isPending || deletePostByHrMutation.isPending || deletePostMutation.isPending
-                ||likePostMutation.isPending || unlikePostMutation.isPending || isRefetching
-            ) && <Loader/>}
+            {(createPostMutation.isPending || updatePostMutation.isPending
+                || isRefetching
+            ) && <Loader />}
         </div>
     )
 }

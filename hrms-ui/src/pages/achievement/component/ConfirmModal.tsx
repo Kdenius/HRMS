@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Modal, Button, Spinner, ModalHeader, ModalBody, Textarea } from "flowbite-react";
 
 interface ConfirmModalProps {
@@ -26,11 +26,6 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
     onConfirm,
     onClose,
 }) => {
-    useEffect(() => {
-        if (!open) {
-            setRemark("");
-        }
-    }, [open])
     const [remark, setRemark] = useState("");
 
     return (

@@ -5,7 +5,7 @@ import { createComment, createPost, deleteComment, deleteCommentByHr, deletePost
 // Get Posts
 export const useGetPosts = (filters?: PostFilters, page: number = 1) => {
     return useQuery({
-        queryKey: ["Posts", page, filters],
+        queryKey: ["Posts", filters, page],
         queryFn: () => getPosts(page, filters),
     });
 };
