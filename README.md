@@ -8,45 +8,45 @@ A web-based Human Resource Management System (HRMS) designed to streamline and a
 
 ### 👥 Master Data Management
 
-* Employee Profile Management
-* Role & Permission Management
-* Department Configuration
+- Employee Profile Management
+- Role & Permission Management
+- Department Configuration
 
 ### ✈️ Travel & Expense Management
 
-* Travel Plan Creation & Assignment
-* Travel Document Management
-* Expense Submission & Validation
-* Expense Approval Workflow
-* Reimbursement Tracking
+- Travel Plan Creation & Assignment
+- Travel Document Management
+- Expense Submission & Validation
+- Expense Approval Workflow
+- Reimbursement Tracking
 
 ### 🎉 Social Engagement
 
-* Achievement Posts
-* Likes & Comments
-* Birthday & Work Anniversary Celebrations
-* Content Moderation
+- Achievement Posts
+- Likes & Comments
+- Birthday & Work Anniversary Celebrations
+- Content Moderation
 
 ### 🎮 Games Scheduling System
 
-* Game Slot Booking
-* Queue-Based Fair Scheduling
-* Weekly Participation Reset
-* Slot Reallocation
+- Game Slot Booking
+- Queue-Based Fair Scheduling
+- Weekly Participation Reset
+- Slot Reallocation
 
 ### 🏢 Organization Chart
 
-* Organizational Hierarchy Visualization
-* Managerial Chain Tracking
-* Direct Report Management
+- Organizational Hierarchy Visualization
+- Managerial Chain Tracking
+- Direct Report Management
 
 ### 💼 Recruitment & Referral System
 
-* Job Posting Management
-* Job Sharing via Email
-* Employee Referral System
-* CV Upload & Tracking
-* Referral Audit Logs
+- Job Posting Management
+- Job Sharing via Email
+- Employee Referral System
+- CV Upload & Tracking
+- Referral Audit Logs
 
 ---
 
@@ -71,10 +71,10 @@ A web-based Human Resource Management System (HRMS) designed to streamline and a
 
 ## ⚙️ Prerequisites
 
-* Java 17+
-* Node.js 18+
-* SQL Server
-* Git
+- Java 17+
+- Node.js 18+
+- SQL Server
+- Git
 
 ---
 
@@ -114,7 +114,7 @@ gradlew.bat bootRun
 ./gradlew bootRun
 ```
 
-Or Eaily from any IDE like : `Eclipse` or `Intellij Idea`
+Or Easily from any IDE like : `Eclipse` or `Intellij Idea`
 
 Backend URL:
 
@@ -192,12 +192,12 @@ spring.profiles.active=storage-local,mail-smtp
 
 #### Available Storage Profiles
 
-| Profile         | Description                       |
-| --------------- | --------------------------------- |
-| `storage-local` | Store files on the local server   |
-| `storage-aws`   | Store files in AWS S3             |
-| `storage-azure` | Store files in Azure Blob Storage |
-| `storage-cloudinary` | Store files in Cloudinary |
+| Profile              | Description                       |
+| -------------------- | --------------------------------- |
+| `storage-local`      | Store files on the local server   |
+| `storage-aws`        | Store files in AWS S3             |
+| `storage-azure`      | Store files in Azure Blob Storage |
+| `storage-cloudinary` | Store files in Cloudinary         |
 
 #### Available Mail Profiles
 
@@ -209,7 +209,7 @@ spring.profiles.active=storage-local,mail-smtp
 
 ## 📚 Documentation
 
-- 📌 [Feature Documentation](./docs/HRMS_Feature_Requirment.pdf)
+- 📌 [Requirement Documentation](./docs/HRMS_Feature_Requirment.pdf)
 - 📕 [Project Report](./docs/HRMS_Report.pdf)
 - 📊 [Presentation](./docs/HRMS_PPT.pptx)
 
